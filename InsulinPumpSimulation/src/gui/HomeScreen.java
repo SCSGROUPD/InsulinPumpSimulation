@@ -1,6 +1,11 @@
 package gui;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -11,9 +16,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.wb.swt.SWTResourceManager;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import org.eclipse.swt.browser.Browser;
+
+import util.Constants;
 
 /**
  * Newly Imported from google.
@@ -23,6 +27,15 @@ public class HomeScreen {
 
 	protected Shell shlHomeScreen;
 	protected Label lblClock ;
+	protected ProgressBar pbBattery;
+	protected ProgressBar pbInsulinReservoir;
+	protected ProgressBar pbGlucagonReservoir;
+	private Label lblPumpStatus;
+	private Label lblGlucoseSensorstatus;
+	private Label lblNeedleStatus ;
+	private Label lblAlarmStatus;
+	
+	private String statusImg = Constants.STATUS_OK_IMG;
 	
 	/**
 	 * Launch the application.
@@ -53,7 +66,98 @@ public class HomeScreen {
 		}
 	}
 	
-
+	public void setBatteryLife(int value){
+		pbBattery.setSelection(value);
+		pbBattery.setState(SWT.NORMAL);
+		if(value <=30){
+			pbBattery.setState(SWT.ERROR);
+		}else if(value > 30 && value <=50){
+			pbBattery.setState(SWT.PAUSED);
+		}
+	}
+	
+	public void setStatus(String iconPath, String statusTxt){
+		
+	}
+	
+	
+	public void setInsulinReservoir (int value){
+		pbInsulinReservoir.setSelection(value);
+		pbInsulinReservoir.setState(SWT.NORMAL);
+		if (value <=30){
+			pbInsulinReservoir.setState(SWT.ERROR);
+			}else if(value > 30 && value <=50){
+				pbInsulinReservoir.setState(SWT.PAUSED);
+				
+			}
+		
+	
+	}
+	
+	public void setGlucagonReservoir (int value){
+		pbGlucagonReservoir.setSelection(value);
+		pbGlucagonReservoir.setState(SWT.NORMAL);
+		if (value <=30){
+			pbGlucagonReservoir.setState(SWT.ERROR);
+			}else if(value > 30 && value <=50){
+				pbGlucagonReservoir.setState(SWT.PAUSED);
+				
+			}
+		
+	
+	}
+	
+	public void setPreConditionStatus (boolean status, String component){
+		// PUMP
+		if(component.equals(Constants.COMPONENT_PUMP)){
+			if(status){ // All is well
+				lblPumpStatus.setText("OK");
+				lblPumpStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
+			}else{
+				lblPumpStatus.setText("FAULTY");
+				lblPumpStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
+			}
+		}
+		//Needle Assembly
+		if(component.equals(Constants.COMPONENT_NEEDLE_ASSEMBLY)){
+			if(status){ // All is well
+				lblNeedleStatus.setText("OK");
+				lblNeedleStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
+			}else{
+				lblNeedleStatus.setText("FAULTY");
+				lblNeedleStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
+			}
+		}
+	
+	//Glucose Sensor
+			if(component.equals(Constants.COMPONENT_GLUCOSE_SENSOR)){
+				if(status){ // All is well
+					lblGlucoseSensorstatus.setText("OK");
+					lblGlucoseSensorstatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
+				}else{
+					lblGlucoseSensorstatus.setText("FAULTY");
+					lblGlucoseSensorstatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));	
+				}
+			}	
+	
+			//Alarm Status
+			if(component.equals(Constants.COMPONENT_ALARM)){
+				if(status){ // All is well
+					lblAlarmStatus.setText("OK");
+					lblAlarmStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
+				}else{
+					lblAlarmStatus.setText("FAULTY");
+					lblAlarmStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));	
+				}
+			}	
+	}
+	public int getRandom(){
+		Random rn = new Random();
+		int range = 100 - 0 + 1;
+		int randomNum =  rn.nextInt(range) + 0;
+		return randomNum;
+	}
+	
 	/**
 	 * Create contents of the window.
 	 */
@@ -63,98 +167,131 @@ public class HomeScreen {
 		shlHomeScreen.setSize(748, 520);
 		shlHomeScreen.setText("TWO HARMONE SIMULATOR PUMP : GROUP D");
 		
-		Group group = new Group(shlHomeScreen, SWT.NONE);
-		group.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		group.setBounds(10, 67, 441, 61);
+		Group grpStatus = new Group(shlHomeScreen, SWT.NONE);
+		grpStatus.setFont(SWTResourceManager.getFont("Segoe UI", 13, SWT.BOLD));
+		grpStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		grpStatus.setBounds(10, 0, 441, 82);
 		
-		Label lblLatestSugarLevels = new Label(group, SWT.NONE);
-		lblLatestSugarLevels.setBounds(10, 23, 151, 23);
-		lblLatestSugarLevels.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblLatestSugarLevels.setFont(SWTResourceManager.getFont("Calibri", 14, SWT.BOLD));
-		lblLatestSugarLevels.setText("Latest Sugar Levels");
+		Label lblStatusIndicator = new Label(grpStatus, SWT.NONE);
+		lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, statusImg));
+		lblStatusIndicator.setBounds(10, 20, 38, 52);
 		
-		Label lblMgdl = new Label(group, SWT.NONE);
-		lblMgdl.setBounds(176, 29, 51, 15);
-		lblMgdl.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblMgdl.setText("??? mg/dl");
-		
-		Label lblNewLabel = new Label(group, SWT.NONE);
-		lblNewLabel.setBounds(267, 29, 159, 15);
-		lblNewLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblNewLabel.setText("Expected Value 70 - 120 mg/dl");
+		Label lblStatusMessage = new Label(grpStatus, SWT.NONE);
+		lblStatusMessage.setFont(SWTResourceManager.getFont("Segoe UI", 15, SWT.BOLD));
+		lblStatusMessage.setText("Last Bolus dosage delivered at 16.30");
+		lblStatusMessage.setBounds(54, 29, 377, 43);
 		
 		Group grpCriticalIndicators = new Group(shlHomeScreen, SWT.NONE);
 		grpCriticalIndicators.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		grpCriticalIndicators.setFont(SWTResourceManager.getFont("Calibri", 12, SWT.BOLD));
 		grpCriticalIndicators.setText("Critical Indicators");
-		grpCriticalIndicators.setBounds(457, 50, 265, 381);
+		grpCriticalIndicators.setBounds(457, 43, 265, 388);
 		
-		ProgressBar progressBarBattery = new ProgressBar(grpCriticalIndicators, SWT.NONE);
-		progressBarBattery.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		progressBarBattery.setBounds(132, 32, 123, 25);
+		pbBattery = new ProgressBar(grpCriticalIndicators, SWT.NONE);
+		pbBattery.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		pbBattery.setBounds(132, 32, 123, 25);
+		
+		
+		setBatteryLife(getRandom());
 		
 		Label lblBattery = new Label(grpCriticalIndicators, SWT.NONE);
 		lblBattery.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblBattery.setBounds(10, 42, 55, 15);
 		lblBattery.setText("Battery");
 		
-		ProgressBar progressBarInsulin = new ProgressBar(grpCriticalIndicators, SWT.NONE);
-		progressBarInsulin.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		progressBarInsulin.setBounds(132, 79, 123, 25);
+		pbInsulinReservoir = new ProgressBar(grpCriticalIndicators, SWT.NONE);
+		pbInsulinReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		pbInsulinReservoir.setBounds(132, 79, 123, 25);
 		
-		ProgressBar progressBarGlucagon = new ProgressBar(grpCriticalIndicators, SWT.NONE);
-		progressBarGlucagon.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		progressBarGlucagon.setBounds(132, 131, 123, 25);
+		setInsulinReservoir(getRandom());
 		
 		Label lblInsulinReservoir = new Label(grpCriticalIndicators, SWT.NONE);
 		lblInsulinReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblInsulinReservoir.setBounds(10, 89, 102, 15);
 		lblInsulinReservoir.setText("Insulin Reservoir");
 		
+		pbGlucagonReservoir = new ProgressBar(grpCriticalIndicators, SWT.NONE);
+		pbGlucagonReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		pbGlucagonReservoir.setBounds(132, 131, 123, 25);
+		
+		setGlucagonReservoir(getRandom());
+		
+		
+		
 		Label lblGlucagonReservoir = new Label(grpCriticalIndicators, SWT.NONE);
 		lblGlucagonReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblGlucagonReservoir.setBounds(10, 141, 116, 15);
 		lblGlucagonReservoir.setText("Glucagon Reservoir");
 		
-		Label lblNewLabel_1 = new Label(grpCriticalIndicators, SWT.NONE);
-		lblNewLabel_1.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblNewLabel_1.setBounds(10, 207, 116, 15);
-		lblNewLabel_1.setText("Pump");
+		Label lblPump = new Label(grpCriticalIndicators, SWT.NONE);
+		lblPump.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblPump.setBounds(10, 207, 116, 15);
+		lblPump.setText("Pump");
 		
-		Label lblNewLabel_2 = new Label(grpCriticalIndicators, SWT.NONE);
-		lblNewLabel_2.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblNewLabel_2.setBounds(10, 251, 129, 15);
-		lblNewLabel_2.setText("Blood Glucose Sensor");
+		Label lblBloodGlucoseSensor = new Label(grpCriticalIndicators, SWT.NONE);
+		lblBloodGlucoseSensor.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblBloodGlucoseSensor.setBounds(10, 251, 129, 15);
+		lblBloodGlucoseSensor.setText("Blood Glucose Sensor");
 		
-		Label lblNewLabel_3 = new Label(grpCriticalIndicators, SWT.NONE);
-		lblNewLabel_3.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblNewLabel_3.setBounds(10, 294, 116, 15);
-		lblNewLabel_3.setText("Needle Assembly");
+		Label lblNeedleAssembly = new Label(grpCriticalIndicators, SWT.NONE);
+		lblNeedleAssembly.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblNeedleAssembly.setBounds(10, 294, 116, 15);
+		lblNeedleAssembly.setText("Needle Assembly");
 		
-		Label lblNewLabel_4 = new Label(grpCriticalIndicators, SWT.NONE);
-		lblNewLabel_4.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblNewLabel_4.setBounds(10, 342, 116, 15);
-		lblNewLabel_4.setText("Alarm");
+		Label lblAalarm = new Label(grpCriticalIndicators, SWT.NONE);
+		lblAalarm.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblAalarm.setBounds(10, 342, 116, 15);
+		lblAalarm.setText("Alarm");
 		
-		Label label = new Label(grpCriticalIndicators, SWT.NONE);
-		label.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		label.setBounds(171, 207, 55, 25);
-		label.setText("New Label");
+		lblPumpStatus = new Label(grpCriticalIndicators, SWT.NONE);
+		lblPumpStatus.setText("OK");
+		lblPumpStatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
+		lblPumpStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblPumpStatus.setBounds(171, 202, 68, 25);
+		setPreConditionStatus(true, Constants.COMPONENT_PUMP);
 		
-		Label label_1 = new Label(grpCriticalIndicators, SWT.NONE);
-		label_1.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		label_1.setText("New Label");
-		label_1.setBounds(171, 251, 55, 25); 
+		lblGlucoseSensorstatus = new Label(grpCriticalIndicators, SWT.NONE);
+		lblGlucoseSensorstatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
+		lblGlucoseSensorstatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblGlucoseSensorstatus.setText("OK");
+		lblGlucoseSensorstatus.setBounds(171, 251, 55, 25);
+		setPreConditionStatus(true, Constants.COMPONENT_GLUCOSE_SENSOR);
 		
-		Label label_2 = new Label(grpCriticalIndicators, SWT.NONE);
-		label_2.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		label_2.setText("New Label");
-		label_2.setBounds(171, 294, 55, 25);
+		lblNeedleStatus = new Label(grpCriticalIndicators, SWT.NONE);
+		lblNeedleStatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
+		lblNeedleStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblNeedleStatus.setText("OK");
+		lblNeedleStatus.setBounds(171, 294, 55, 25);
+		setPreConditionStatus(true, Constants.COMPONENT_NEEDLE_ASSEMBLY);
 		
-		Label label_3 = new Label(grpCriticalIndicators, SWT.NONE);
-		label_3.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		label_3.setText("New Label");
-		label_3.setBounds(171, 342, 55, 25);
+		lblAlarmStatus = new Label(grpCriticalIndicators, SWT.NONE);
+		lblAlarmStatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
+		lblAlarmStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblAlarmStatus.setText("OK");
+		lblAlarmStatus.setBounds(171, 342, 55, 25);
+		setPreConditionStatus(true, Constants.COMPONENT_ALARM);
+		
+		Group group_1 = new Group(shlHomeScreen, SWT.NONE);
+		group_1.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		group_1.setFont(SWTResourceManager.getFont("Segoe UI", 11, SWT.BOLD));
+		group_1.setBounds(10, 82, 441, 61);
+		
+		
+		Label lblLatestSugarLevels = new Label(group_1, SWT.NONE);
+		lblLatestSugarLevels.setBounds(10, 23, 151, 23);
+		lblLatestSugarLevels.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblLatestSugarLevels.setFont(SWTResourceManager.getFont("Calibri", 14, SWT.BOLD));
+		lblLatestSugarLevels.setText("Latest Sugar Levels");
+		
+		Label lblMgdl = new Label(group_1, SWT.NONE);
+		lblMgdl.setBounds(176, 29, 51, 15);
+		lblMgdl.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblMgdl.setText("??? mg/dl");
+		
+		Label lblNewLabel = new Label(group_1, SWT.NONE);
+		lblNewLabel.setBounds(267, 29, 159, 15);
+		lblNewLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblNewLabel.setText("Expected Value 70 - 120 mg/dl");
 		
 		Group grpNextBolusDosage = new Group(shlHomeScreen, SWT.NONE);
 		grpNextBolusDosage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -281,7 +418,7 @@ public class HomeScreen {
 		lblLogo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblLogo.setBounds(614, 0, 112, 50);
 		
-		Group group_1 = new Group(shlHomeScreen, SWT.NONE);
+		Group group= new Group(shlHomeScreen, SWT.NONE);
 		group_1.setLocation(10, 0);
 		group_1.setSize(441, 61);
 		group_1.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
