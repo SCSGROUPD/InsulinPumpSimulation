@@ -20,7 +20,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import util.Constants;
 
 /**
- * Newly Imported from google.
+ * Newly  Imported from google.
  */
 
 public class HomeScreen {
