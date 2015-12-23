@@ -13,7 +13,7 @@ import gui.HomeScreen;
 @ComponentScan
 @EnableAutoConfiguration
 public class Application {
-	
+
 	private HomeScreen appHomeScreen;
 	
 	public static void main(String[] args) {
@@ -40,6 +40,7 @@ public class Application {
 		appHomeScreen = (HomeScreen) context.getBean("app");
 		// sets the initial pre-condition values
 		appHomeScreen.setPreConditions(dbMgr.getPreconditions());
+		appHomeScreen.setMealTime(dbMgr.getAppSettings());
 		appHomeScreen.open();
 	}
 

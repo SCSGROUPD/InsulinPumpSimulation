@@ -32,6 +32,9 @@
 				<value>entities.ActivityLog</value>
 				<value>entities.PreConditions</value>
 				<value>entities.AppSettings</value>
+				<value>entities.SugarLevelRecord</value>
+				<value>entities.SugarSensor</value>
+				<!-- <value>entities.GraphData</value> -->
 			</list>
 		</property>
 		<property name="hibernateProperties">
@@ -39,7 +42,7 @@
 				<prop key="hibernate.hbm2ddl.auto">update</prop>
 				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
 				<prop key="hibernate.current_session_context_class">thread</prop>
-				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.show_sql">false</prop>
 			</props>
 		</property>
 	</bean>

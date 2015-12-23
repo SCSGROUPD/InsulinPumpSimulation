@@ -2,6 +2,18 @@ package util;
 
 public class Constants {
 	
+	public static final int ACTIVITY_STATUS_OK = 1;
+	
+	public static final int ACTIVITY_STATUS_WARNING = 2;
+	
+	public static final int ACTIVITY_STATUS_ERROR = 3;
+	
+	public static final String SOUND_REMINDER= "../InsulinPumpSimulation/src/resources/reminder.wav";
+	
+	public static final String SOUND_FAILURE= "../InsulinPumpSimulation/src/resources/preCondFail.wav";
+	
+	public static final String SOUND_PHONE= "../InsulinPumpSimulation/src/resources/old-phone-ringing.wav";
+	
 	public static final String STATUS_OK_IMG ="/resources/ok-icon.png";
 	
 	public static final String STATUS_WARNING_IMG ="/resources/warning-icon.png";

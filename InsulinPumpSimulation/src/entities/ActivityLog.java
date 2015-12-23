@@ -6,7 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PrePersist;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 public class ActivityLog {
@@ -17,12 +18,9 @@ public class ActivityLog {
 
 	private String activity;
 
-	private Date created;
+	@Temporal(TemporalType.TIMESTAMP) 
+	private Date created =  new Date();
 
-	@PrePersist
-	protected void onCreate() {
-		created = new Date();
-	}
 
 	public int getId() {
 		return id;

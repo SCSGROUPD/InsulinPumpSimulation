@@ -1,14 +1,5 @@
 package gui;
 
-import java.io.File;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -20,6 +11,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
+
+import util.Constants;
+import util.Utility;
 
 public class CARBRemainderPage {
 
@@ -50,44 +44,13 @@ public class CARBRemainderPage {
 		shlCarbAndRemainder.layout();
 		
 		if(soundRequired){
-			makeNoise(); 
+			Utility.makeNoise(Constants.SOUND_REMINDER); 
 		}
 			
-		
 		while (!shlCarbAndRemainder.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
-		}
-	}
-
-	private void makeNoise() {
-		try {
-	    	File soundFile = new File("../InsulinPumpSimulation/src/resource/old-phone-ringing.wav");
-			AudioInputStream sound = AudioSystem.getAudioInputStream(soundFile);
-			DataLine.Info info = new DataLine.Info(Clip.class, sound.getFormat());
-			Clip clip = (Clip) AudioSystem.getLine(info);
-		    clip.open(sound);
-
-		    // due to bug in Java Sound, explicitly exit the VM when
-		    // the sound has stopped.
-		    clip.addLineListener(new LineListener() {
-				@Override
-				public void update(LineEvent event) {
-			        if (event.getType() == LineEvent.Type.STOP) {
-			          event.getLine().close();
-			          System.exit(0);
-			        }
-				}
-			});
-
-		    // play the sound clip
-		    clip.start();
-			
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 

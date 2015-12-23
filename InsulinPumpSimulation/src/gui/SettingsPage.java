@@ -3,6 +3,8 @@ package gui;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
@@ -117,7 +119,6 @@ public class SettingsPage {
 
 		int hours = Integer.parseInt(settings.getBreakfastTime().split(":")[0]);
 		int minute = Integer.parseInt(settings.getBreakfastTime().split(":")[1]);
-		spinnerBFH.setMinimum(6);
 		spinnerBFH.setSelection(hours);
 		spinnerBFM.setSelection(minute);
 
@@ -352,9 +353,28 @@ public class SettingsPage {
 
 		spinnerBasalaInsulin = new Spinner(groupSettings, SWT.BORDER);
 		spinnerBasalaInsulin.setBounds(261, 136, 76, 22);
+		spinnerBasalaInsulin.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				int diff = settings.getTdd() - spinnerBasalaInsulin.getSelection();
+				settings.setBasal(spinnerBasalaInsulin.getSelection());
+				settings.setBolus(diff);
+				spinnerBolusInsulin.setSelection(diff);
+			}
+		});
 
+		
 		spinnerBolusInsulin = new Spinner(groupSettings, SWT.BORDER);
 		spinnerBolusInsulin.setBounds(261, 168, 76, 22);
+		spinnerBolusInsulin.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				int diff = settings.getTdd() - spinnerBolusInsulin.getSelection();
+				settings.setBasal(spinnerBolusInsulin.getSelection());
+				settings.setBolus(diff);
+				spinnerBasalaInsulin.setSelection(diff);
+			}
+		});
 
 		Button btnCancel = new Button(shlSettings, SWT.NONE);
 		btnCancel.setBounds(339, 432, 75, 25);
@@ -385,7 +405,8 @@ public class SettingsPage {
 		btnSubmit.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				dbMgr.save(settings);
+				dbMgr.merge(settings);
+				shlSettings.close();
 			}
 		});
 
