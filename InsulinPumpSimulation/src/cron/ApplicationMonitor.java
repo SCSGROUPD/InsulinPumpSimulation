@@ -1,5 +1,6 @@
 package cron;
 
+import java.text.DecimalFormat;
 import java.util.Map;
 
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -8,34 +9,49 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import dba.DBManager;
 import entities.AppSettings;
+import entities.PreConditionsRecord;
 import entities.SugarLevelRecord;
 import gui.HomeScreen;
+import util.Constants;
 
 @EnableAsync
 @EnableScheduling
 public class ApplicationMonitor {
 	// Global variables
-	public static volatile boolean preConditionStatus= false;
 	public static volatile int latestBolusUnits =0;
 	public static volatile long latestBolusTime=0;
+	private int basalCounter=0;
+	
 	
 	// Injected from Spring
 	private DBManager dbMgr;
 	private HomeScreen appHomeScreen;
+	private AppSettings settings;
 
     
-	@Scheduled(initialDelay=5000, fixedRate=5000)
+	@Scheduled(initialDelay=2000, fixedRate=5000)
     public void startMonitorThread() {
     	Map<Integer, Integer> pcs = dbMgr.getPreconditions();
-    	AppSettings settings = dbMgr.getAppSettings();
+    	settings = dbMgr.getAppSettings();
     	int sugarLevel = dbMgr.getSugarLevel();
     	appHomeScreen.setSugarLevel(sugarLevel);
+    	appHomeScreen.setActivityLog(dbMgr.getActivities());
+    	PreConditionsRecord pcr = new PreConditionsRecord();
+    	appHomeScreen.setPreConditions(pcs,pcr);
+    	appHomeScreen.setMealTime(settings);
+    	if(pcr.getCurrentStatus()){
+    		appHomeScreen.setStatus(Constants.ICON_OK_IMG, "Application works fine!");
+    	}
     	SugarLevelRecord record = new SugarLevelRecord();
+    	// inject Basal once in every 4 cycles
+    	if(basalCounter == 3){
+    		basalCounter =0;
+    		injectBasal(record, pcr);
+    	}
+    	basalCounter++;
     	record.setSugarLevel(sugarLevel);
     	dbMgr.save(record);
-    	appHomeScreen.setActivityLog(dbMgr.getActivities());
-    	appHomeScreen.setPreConditions(pcs);
-    	appHomeScreen.setMealTime(settings);
+    	dbMgr.save(pcr);
     }
 
     /**
@@ -62,10 +78,16 @@ public class ApplicationMonitor {
 	 * 
 	 * @param settings
 	 */
-	private void calculateBasal(AppSettings settings){
-		
-		if(ApplicationMonitor.preConditionStatus && settings.getBasal() != 0){
-			int basalUnit = settings.getBasal()/48;
+	public void injectBasal(SugarLevelRecord sl, PreConditionsRecord pcr){
+		if(pcr.getCurrentStatus() && settings.getBasal() != 0){
+			DecimalFormat df = new DecimalFormat("####0.00");
+			Double basalUnit = Double.valueOf(df.format((double)settings.getBasal()/48.00));
+			dbMgr.setActivity(basalUnit + " md/dl of BASAL INJECTED.", Constants.ACTIVITY_STATUS_OK);
+			appHomeScreen.setStatus(Constants.ICON_OK_IMG, basalUnit + " md/dl of BASAL INJECTED.");
+			sl.setBasalInjectedInjected(basalUnit);
+		}else{
+			dbMgr.setActivity("BASAL INJECTION FAILED. Some pre-condition test failed!", Constants.ACTIVITY_STATUS_ERROR);
+			appHomeScreen.setStatus(Constants.ICON_ERROR_IMG, "BASAL INJECTION FAILED. Some pre-condition test failed!");
 		}
 	}
     

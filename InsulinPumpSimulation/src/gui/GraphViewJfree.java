@@ -3,20 +3,12 @@ package gui;
 import java.awt.Color;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.DateTime;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -24,12 +16,10 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Day;
-import org.jfree.data.time.Month;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.experimental.chart.swt.ChartComposite;
-import org.jfree.experimental.chart.swt.demo.SWTBarChartDemo1;
 import org.jfree.ui.RectangleInsets;
 
 public class GraphViewJfree {

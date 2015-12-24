@@ -23,6 +23,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import dba.DBManager;
 import entities.ActivityLog;
 import entities.AppSettings;
+import entities.PreConditionsRecord;
 import util.Constants;
 import util.Utility;
 
@@ -48,7 +49,6 @@ public class HomeScreen {
 	private Label lblAlarmStatus;
 	private Label lblStatusIndicator;
 	private Label lblStatusMessage;
-	private volatile boolean isAppFaulty = false;
 	private volatile String faultyText = "";
 
 	private Map<Integer, Integer> preConditions = new HashMap();
@@ -121,6 +121,7 @@ public class HomeScreen {
 
 	/**
 	 * Update the latest sugar level
+	 * 
 	 * @param sugarLevel
 	 */
 	public void setSugarLevel(int sugarLevel) {
@@ -130,16 +131,18 @@ public class HomeScreen {
 				progressBarSugarLevel.setState(SWT.NORMAL);
 				progressBarSugarLevel.setToolTipText(sugarLevel + "mg/dl");
 				if (sugarLevel <= 70 || sugarLevel > 140) {
-					dbMgr.setActivity("Sugar level is beyound the range. Sugar level is " + sugarLevel + " md/dl", Constants.ACTIVITY_STATUS_ERROR);
+					dbMgr.setActivity("Sugar level is beyound the range. Sugar level is " + sugarLevel + " md/dl",
+							Constants.ACTIVITY_STATUS_ERROR);
 					progressBarSugarLevel.setState(SWT.ERROR);
-				}else{
-//					dbMgr.setActivity("Sugar level is within the range. Sugar level is " + sugarLevel + " md/dl", Constants.ACTIVITY_STATUS_OK);
+				} else {
+					// dbMgr.setActivity("Sugar level is within the range. Sugar
+					// level is " + sugarLevel + " md/dl",
+					// Constants.ACTIVITY_STATUS_OK);
 				}
 			}
-		}));	
+		}));
 	}
-	
-	
+
 	public void setActivityLog(List<ActivityLog> logs) {
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
@@ -157,22 +160,21 @@ public class HomeScreen {
 	 * 
 	 * @param value
 	 */
-	public void setBatteryLife(int value) {
+	public void setBatteryLife(int value, PreConditionsRecord pcr) {
 		pbBattery.setSelection(value);
 		pbBattery.setState(SWT.NORMAL);
+		pcr.setBatteryTestResult(true);
 		pbBattery.setToolTipText(value + "%");
-		setStatus(Constants.STATUS_OK_IMG, "ALL IS WELL!");
 		if (value <= 30) {
 			dbMgr.setActivity("Battery power too low!", Constants.ACTIVITY_STATUS_ERROR);
-			isAppFaulty = true;
+			pcr.setBatteryTestResult(false);
 			pbBattery.setState(SWT.ERROR);
-			setStatus(Constants.STATUS_ERROR_IMG, "Critical Indicator/s failed!");
 		} else if (value > 30 && value <= 40) {
 			dbMgr.setActivity("Battery power is weak!", Constants.ACTIVITY_STATUS_WARNING);
 			pbBattery.setState(SWT.PAUSED);
-			setStatus(Constants.STATUS_WARNING_IMG, "Check Critical Indicators!");
-		}else{
-//			dbMgr.setActivity("Battery power stable", Constants.ACTIVITY_STATUS_OK);
+		} else {
+			// dbMgr.setActivity("Battery power stable",
+			// Constants.ACTIVITY_STATUS_OK);
 		}
 	}
 
@@ -182,58 +184,66 @@ public class HomeScreen {
 	 * @param iconPath
 	 * @param statusTxt
 	 */
-	public void setStatus(String iconPath, String statusTxt) {
-		// Don't over ride if the app is already in error state
-		String icon = iconPath;
-		if (isAppFaulty) {
-			if (faultyText.isEmpty()) {
-				faultyText = statusTxt;
+	public void setStatus(String iconPath, final String statusTxt) {
+		Display.getDefault().asyncExec((new Runnable() {
+			public void run() {
+				// Don't over ride if the app is already in error state
+				String icon = iconPath;
+				String statusText = statusTxt;
+				/*
+				 * if (isPreConditionsFailed) { if (faultyText.isEmpty()) {
+				 * faultyText = statusTxt; } statusText = faultyText; icon =
+				 * Constants.ICON_ERROR_IMG; }
+				 */
+				if (Constants.ICON_ERROR_IMG.equals(iconPath)) {
+					if (faultyText.isEmpty()) {
+						faultyText = statusTxt;
+					}
+					statusText = faultyText;
+					icon = Constants.ICON_ERROR_IMG;
+				}
+				lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, icon));
+				lblStatusMessage.setText(statusTxt);
 			}
-			statusTxt = faultyText;
-			icon = Constants.STATUS_ERROR_IMG;
-		}
-		lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, icon));
-		lblStatusMessage.setText(statusTxt);
+		}));
 	}
 
-	public void setInsulinReservoir(int value) {
+	public void setInsulinReservoir(int value, PreConditionsRecord pcr) {
 		pbInsulinReservoir.setSelection(value);
+		pcr.setInsulinReservoirTestResult(true);
 		pbInsulinReservoir.setState(SWT.NORMAL);
 		pbInsulinReservoir.setToolTipText(value + "%");
-		setStatus(Constants.STATUS_OK_IMG, "ALL IS WELL!");
 		if (value <= 30) {
-			isAppFaulty = true;
+			pcr.setInsulinReservoirTestResult(false);
 			pbInsulinReservoir.setState(SWT.ERROR);
-			setStatus(Constants.STATUS_ERROR_IMG, "Critical Indicator/s failed!");
 			dbMgr.setActivity("Insulin reservoir in critical state. Please refill it", Constants.ACTIVITY_STATUS_ERROR);
 		} else if (value > 30 && value <= 40) {
 			pbInsulinReservoir.setState(SWT.PAUSED);
-			setStatus(Constants.STATUS_WARNING_IMG, "Check Critical Indicators!");
+			// setStatus(Constants.ICON_WARNING_IMG, "Check Critical
+			// Indicators!");
 			dbMgr.setActivity("Insulin reservoir needs attention. Please refill it", Constants.ACTIVITY_STATUS_WARNING);
-		}else{
-//			dbMgr.setActivity("Insulin reservoir is good enough", Constants.ACTIVITY_STATUS_OK);
 		}
 	}
 
 	/**
 	 * @param value
 	 */
-	public void setGlucagonReservoir(int value) {
+	public void setGlucagonReservoir(int value, PreConditionsRecord pcr) {
 		pbGlucagonReservoir.setSelection(value);
 		pbGlucagonReservoir.setState(SWT.NORMAL);
+		pcr.setGlucagonTestResult(true);
 		pbGlucagonReservoir.setToolTipText(value + "%");
-		setStatus(Constants.STATUS_OK_IMG, "ALL IS WELL!");
 		if (value <= 30) {
-			isAppFaulty = true;
+			pcr.setGlucagonTestResult(false);
 			pbGlucagonReservoir.setState(SWT.ERROR);
-			setStatus(Constants.STATUS_ERROR_IMG, "Critical Indicator/s failed!");
 			dbMgr.setActivity("Glucagon reservoir needs to be refilled immediately.", Constants.ACTIVITY_STATUS_ERROR);
 		} else if (value > 30 && value <= 40) {
 			pbGlucagonReservoir.setState(SWT.PAUSED);
-			setStatus(Constants.STATUS_WARNING_IMG, "Check Critical Indicators!");
+			setStatus(Constants.ICON_WARNING_IMG, "Check Critical Indicators!");
 			dbMgr.setActivity("Glucagon reservoir is draining. Please refill", Constants.ACTIVITY_STATUS_WARNING);
-		}else{
-//			dbMgr.setActivity("Glucagon reservoir is good enough", Constants.ACTIVITY_STATUS_OK);
+		} else {
+			// dbMgr.setActivity("Glucagon reservoir is good enough",
+			// Constants.ACTIVITY_STATUS_OK);
 		}
 	}
 
@@ -280,95 +290,96 @@ public class HomeScreen {
 	 * @param status
 	 * @param component
 	 */
-	public void setPreConditions(Map<Integer, Integer> pcs) {
-		isAppFaulty = false;
+	public void setPreConditions(Map<Integer, Integer> pcs, PreConditionsRecord pcr) {
 		dbMgr.setActivity("Performing check on all critical indicators", Constants.ACTIVITY_STATUS_OK);
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
 				for (Entry<Integer, Integer> entry : pcs.entrySet()) {
 					switch (entry.getKey()) {
 					case Constants.BATTERY:
-						setBatteryLife(entry.getValue());
+						setBatteryLife(entry.getValue(), pcr);
 						break;
 
 					case Constants.INSULIN_RESERVOIR:
-						setInsulinReservoir(entry.getValue());
+						setInsulinReservoir(entry.getValue(), pcr);
 						break;
 
 					case Constants.GLUCAGON_RESERVOIR:
-						setGlucagonReservoir(entry.getValue());
+						setGlucagonReservoir(entry.getValue(), pcr);
 						break;
 
 					case Constants.PUMP:
 						if (entry.getValue() != 0) { // All is well
 							lblPumpStatus.setText("OK");
-							setStatus(Constants.STATUS_OK_IMG, "ALL IS WELL!");
 							lblPumpStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
+							pcr.setPumpTestResult(true);
 						} else {
-							isAppFaulty = true;
+							pcr.setPumpTestResult(false);
 							lblPumpStatus.setText("FAULTY");
-							setStatus(Constants.STATUS_ERROR_IMG, "Check Critical Indicators!");
 							lblPumpStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
 						}
 						break;
 
 					case Constants.BLOOD_GLU_SENSOR:
 						if (entry.getValue() != 0) { // All is well
+							pcr.setSensorTestResult(true);
 							lblGlucoseSensorstatus.setText("OK");
-							setStatus(Constants.STATUS_OK_IMG, "ALL IS WELL!");
-//							dbMgr.setActivity("Blood Glucose sensor assembly is not working as expected", Constants.ACTIVITY_STATUS_ERROR);
 							lblGlucoseSensorstatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 						} else {
-							isAppFaulty = true;
-							dbMgr.setActivity("Blood Glucose sensor assembly is not working as expected", Constants.ACTIVITY_STATUS_ERROR);
+							pcr.setSensorTestResult(false);
+							dbMgr.setActivity("Blood Glucose sensor assembly is not working as expected",
+									Constants.ACTIVITY_STATUS_ERROR);
 							lblGlucoseSensorstatus.setText("FAULTY");
 							lblGlucoseSensorstatus
 									.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
-							setStatus(Constants.STATUS_ERROR_IMG, "Check Critical Indicators!");
+							setStatus(Constants.ICON_ERROR_IMG, "Check Critical Indicators!");
 						}
 
 						break;
 
 					case Constants.NEEDLE_ASSEMBLY:
 						if (entry.getValue() != 0) { // All is well
-//							dbMgr.setActivity("Needle assembly is working as expected", Constants.ACTIVITY_STATUS_OK);
+							pcr.setNeedleAssemblyTestResult(true);
 							lblNeedleStatus.setText("OK");
-							setStatus(Constants.STATUS_OK_IMG, "ALL IS WELL!");
 							lblNeedleStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 						} else {
-							isAppFaulty = true;
-							dbMgr.setActivity("Needle assembly is not working as expected", Constants.ACTIVITY_STATUS_ERROR);
+							pcr.setNeedleAssemblyTestResult(false);
+							dbMgr.setActivity("Needle assembly is not working as expected",
+									Constants.ACTIVITY_STATUS_ERROR);
 							lblNeedleStatus.setText("FAULTY");
 							lblNeedleStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
-							setStatus(Constants.STATUS_ERROR_IMG, "Check Critical Indicators!");
+							setStatus(Constants.ICON_ERROR_IMG, "Check Critical Indicators!");
 						}
 						break;
 
 					case Constants.ALARM:
 						if (entry.getValue() != 0) { // All is well
-//							dbMgr.setActivity("Alarm is working as expected", Constants.ACTIVITY_STATUS_OK);
+							pcr.setAlarmTestResult(true);
 							lblAlarmStatus.setText("OK");
-							setStatus(Constants.STATUS_OK_IMG, "ALL IS WELL!");
 							lblAlarmStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 						} else {
+							pcr.setAlarmTestResult(false);
 							dbMgr.setActivity("Alarm is not working as expected", Constants.ACTIVITY_STATUS_ERROR);
 							lblAlarmStatus.setText("FAULTY");
-							isAppFaulty = true;
 							lblAlarmStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
-							setStatus(Constants.STATUS_ERROR_IMG, "Check Critical Indicators!");
+							setStatus(Constants.ICON_ERROR_IMG, "Check Critical Indicators!");
 						}
 						break;
 
 					case Constants.CURRENT_SUGAR_LEVEL:
-						System.out.println("");
 						break;
 
 					default:
 						break;
 					}
 				}
+				
+				if(!pcr.getCurrentStatus()){
+					Utility.makeNoise(Constants.SOUND_REMINDER);
+				}
 			}
 		}));
+
 	}
 
 	/**
@@ -504,6 +515,8 @@ public class HomeScreen {
 		grpActivityLog.setBounds(10, 200, 441, 271);
 
 		txtActivityLog = new StyledText(grpActivityLog, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		txtActivityLog.setDoubleClickEnabled(false);
+		txtActivityLog.setEditable(false);
 		txtActivityLog.setFont(SWTResourceManager.getFont("Segoe UI", 11, SWT.NORMAL));
 		txtActivityLog.setBounds(10, 21, 421, 240);
 		Button btnHelp = new Button(shlHomeScreen, SWT.NONE);
@@ -587,13 +600,13 @@ public class HomeScreen {
 
 		lblStatusIndicator = new Label(grpStatus, SWT.NONE);
 		lblStatusIndicator.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, Constants.STATUS_OK_IMG));
+		lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, Constants.ICON_OK_IMG));
 		lblStatusIndicator.setBounds(10, 22, 38, 42);
 
 		lblStatusMessage = new Label(grpStatus, SWT.NONE);
 		lblStatusMessage.setBounds(54, 35, 377, 29);
 		lblStatusMessage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblStatusMessage.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
+		lblStatusMessage.setFont(SWTResourceManager.getFont("Californian FB", 10, SWT.BOLD));
 		lblStatusMessage.setText("Application Started!");
 
 		Label lblLatestSugarLevels = new Label(shlHomeScreen, SWT.NONE);

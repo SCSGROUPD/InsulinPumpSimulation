@@ -8,9 +8,10 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -28,7 +29,6 @@ import org.swtchart.IAxisTick;
 import org.swtchart.IBarSeries;
 import org.swtchart.ISeries;
 import org.swtchart.ISeries.SeriesType;
-import org.swtchart.ISeriesLabel;
 
 import dba.DBManager;
 import util.GraphData;
@@ -106,8 +106,33 @@ public class GraphView {
 		dateTimeFrom = new DateTime(shlGraphView, SWT.BORDER);
 		dateTimeFrom.setBounds(50, 20, 80, 24);
 
+		dateTimeFrom.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected (SelectionEvent  e) {
+				Calendar cal = new GregorianCalendar();
+				cal.set(dateTimeFrom.getYear(), dateTimeFrom.getMonth(), dateTimeFrom.getDay());
+				cal.add(Calendar.MONTH, 1);
+				dateTimeTo.setDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+			}
+		});
+		
 		dateTimeTo = new DateTime(shlGraphView, SWT.BORDER);
 		dateTimeTo.setBounds(159, 19, 80, 24);
+		
+		Calendar cal = new GregorianCalendar();
+		cal.set(dateTimeTo.getYear(), dateTimeTo.getMonth(), dateTimeTo.getDay());
+		cal.add(Calendar.MONTH, -1);
+		dateTimeFrom.setDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+		
+		dateTimeTo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected (SelectionEvent  e) {
+				Calendar cal = new GregorianCalendar();
+				cal.set(dateTimeTo.getYear(), dateTimeTo.getMonth(), dateTimeTo.getDay());
+				cal.add(Calendar.MONTH, -1);
+				dateTimeFrom.setDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+			}
+		});
 
 		btnApply.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -157,6 +182,8 @@ public class GraphView {
 	static public Chart createChart(Composite parent, final Date[] xAxis,
 			final double[] yAxis, List<GraphData> gData ) {
 
+		if(gData == null || gData.isEmpty())
+			return null;
 		// create a chart
 		final Chart chart = new Chart(parent, SWT.NONE);
 
@@ -164,7 +191,7 @@ public class GraphView {
 		chart.getTitle().setText("Blood Sugar Level");
 
 		// create bar series
-		IBarSeries barSeries = (IBarSeries) chart.getSeriesSet().createSeries(SeriesType.BAR, "bar series");
+		IBarSeries barSeries = (IBarSeries) chart.getSeriesSet().createSeries(SeriesType.BAR, "Avg Blood Sugar Level");
 		barSeries.setYSeries(yAxis);
 		barSeries.setXDateSeries(xAxis);
 		barSeries.setBarPadding(10);
@@ -208,35 +235,11 @@ public class GraphView {
 						}
 					}
 				plotArea.setToolTipText("Glucogan ="+ gData.get(index).getGlucogan() 
-						+"mg\nInsulin ="+ gData.get(index).getInsulin() + "mg/dl");
+						+"mg\nBasal Insulin ="+ gData.get(index).getBasal() + "mg/dl"
+						+"mg\nBolus Insulin ="+ gData.get(index).getBolus() + "mg/dl");
 				}
 			}
 		});
-
-/*		plotArea.addListener(SWT.MouseMove, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				highlight = false;
-
-				plotArea.redraw();
-			}
-		});
-
-		plotArea.addListener(SWT.Paint, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				if (highlight) {
-					GC gc = event.gc;
-
-					gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
-					gc.setAlpha(128);
-
-					gc.fillOval(highlightX - 5, highlightY - 5, 10, 10);
-				}
-			}
-		});*/
 
 		return chart;
 	}

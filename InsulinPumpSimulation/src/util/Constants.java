@@ -14,11 +14,11 @@ public class Constants {
 	
 	public static final String SOUND_PHONE= "../InsulinPumpSimulation/src/resources/old-phone-ringing.wav";
 	
-	public static final String STATUS_OK_IMG ="/resources/ok-icon.png";
+	public static final String ICON_OK_IMG ="/resources/ok-icon.png";
 	
-	public static final String STATUS_WARNING_IMG ="/resources/warning-icon.png";
+	public static final String ICON_WARNING_IMG ="/resources/warning-icon.png";
 	
-	public static final String STATUS_ERROR_IMG ="/resources/notok-icon.png";
+	public static final String ICON_ERROR_IMG ="/resources/notok-icon.png";
 	
 	public static final String COMPONENT_PUMP ="COMPONENT_PUMP";
 	public static final String COMPONENT_GLUCOSE_SENSOR ="GlucoseSensor";

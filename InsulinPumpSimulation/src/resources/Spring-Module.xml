@@ -34,7 +34,7 @@
 				<value>entities.AppSettings</value>
 				<value>entities.SugarLevelRecord</value>
 				<value>entities.SugarSensor</value>
-				<!-- <value>entities.GraphData</value> -->
+				<value>entities.PreConditionsRecord</value>
 			</list>
 		</property>
 		<property name="hibernateProperties">

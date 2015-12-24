@@ -8,9 +8,27 @@ public class GraphData {
 	
 	private Date day;
 
+	public double getBasal() {
+		return basal;
+	}
+
+	public void setBasal(double basal) {
+		this.basal = basal;
+	}
+
+	public double getBolus() {
+		return bolus;
+	}
+
+	public void setBolus(double bolus) {
+		this.bolus = bolus;
+	}
+
 	private double glucogan;
 	
-	private double insulin;
+	private double basal;
+	
+	private double bolus;
 	
 	public double getGlucogan() {
 		return glucogan;
@@ -18,14 +36,6 @@ public class GraphData {
 
 	public void setGlucogan(double glucogan) {
 		this.glucogan = glucogan;
-	}
-
-	public double getInsulin() {
-		return insulin;
-	}
-
-	public void setInsulin(double insulin) {
-		this.insulin = insulin;
 	}
 
 	public double getSugarLevel() {

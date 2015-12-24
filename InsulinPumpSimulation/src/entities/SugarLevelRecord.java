@@ -15,8 +15,8 @@ import org.hibernate.annotations.NamedQuery;
 @Entity
 @NamedQueries({
 		@NamedQuery(name = "SQL_GET_GRAPH_DATA", 
-				query = "SELECT avg(x.sugarLevel) as sugarLevel, avg(x.insulinInjected) as insulin,"
-						+ "avg(x.glucagonInjected) as glucogan, x.recordedTime as  day FROM "
+				query = "SELECT avg(x.sugarLevel) as sugarLevel, sum(x.bolusInjectedInjected) as bolus,"
+						+ "sum(x.basalInjectedInjected) as basal, sum(x.glucagonInjected) as glucogan, x.recordedTime as  day FROM "
 						+ "SugarLevelRecord x where x.recordedTime "
 						+ "between ? and ? GROUP BY DATE_FORMAT(x.recordedTime, '%d/%m/%Y') order by day") })
 public class SugarLevelRecord {
@@ -27,16 +27,27 @@ public class SugarLevelRecord {
 
 	private int sugarLevel;
 	
-	private double insulinInjected = 2;
+	private double bolusInjectedInjected;
 	
-	private double glucagonInjected = 0.25;
+	private double basalInjectedInjected;
+	
+	private double glucagonInjected;
 
-	public double getInsulinInjected() {
-		return insulinInjected;
+
+	public double getBolusInjectedInjected() {
+		return bolusInjectedInjected;
 	}
 
-	public void setInsulinInjected(double insulinInjected) {
-		this.insulinInjected = insulinInjected;
+	public void setBolusInjectedInjected(double bolusInjectedInjected) {
+		this.bolusInjectedInjected = bolusInjectedInjected;
+	}
+
+	public double getBasalInjectedInjected() {
+		return basalInjectedInjected;
+	}
+
+	public void setBasalInjectedInjected(double basalInjectedInjected) {
+		this.basalInjectedInjected = basalInjectedInjected;
 	}
 
 	public double getGlucagonInjected() {

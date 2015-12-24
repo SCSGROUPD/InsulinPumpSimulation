@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import dba.DBManager;
+import entities.PreConditionsRecord;
 import gui.HomeScreen;
 
 @Configuration
@@ -39,8 +40,10 @@ public class Application {
 		// Opens the Home Screen
 		appHomeScreen = (HomeScreen) context.getBean("app");
 		// sets the initial pre-condition values
-		appHomeScreen.setPreConditions(dbMgr.getPreconditions());
+		PreConditionsRecord pcr = new PreConditionsRecord();
+		appHomeScreen.setPreConditions(dbMgr.getPreconditions(), pcr);
 		appHomeScreen.setMealTime(dbMgr.getAppSettings());
+		dbMgr.save(pcr);
 		appHomeScreen.open();
 	}
 
