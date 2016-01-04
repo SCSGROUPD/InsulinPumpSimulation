@@ -2,7 +2,9 @@ package util;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -62,6 +64,9 @@ public class Utility {
 		}
 		
 		long timeDiff = 0;
+		Calendar c = new GregorianCalendar();
+		c.setTimeInMillis(System.currentTimeMillis());
+		
 		if (Constants.RECENT_INJECTED_BOLUS == Constants.DINNER_BOLUS
 				&& (currTime <= breakFastTime || currTime > dinnerTime)) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.BREAKFAST_BOLUS;
