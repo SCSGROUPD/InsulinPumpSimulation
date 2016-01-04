@@ -35,12 +35,21 @@ public class PreConditionsRecord {
 	 * @return
 	 */
 	public boolean getCurrentStatus(){
-		if(!batteryTestResult || !insulinReservoirTestResult ||
-				!glucagonTestResult || !pumpTestResult
-				|| !alarmTestResult || !sensorTestResult || !needleAssemblyTestResult){
-			return false;
+//		System.out.println("================================================================");
+//		System.out.println("batteryTestResult=>"+batteryTestResult);
+//		System.out.println("insulinReservoirTestResult=>"+insulinReservoirTestResult);
+//		System.out.println("glucagonTestResult=>"+glucagonTestResult);
+//		System.out.println("pumpTestResult=>"+pumpTestResult);
+//		System.out.println("alarmTestResult=>"+alarmTestResult);
+//		System.out.println("sensorTestResult=>"+sensorTestResult);
+//		System.out.println("needleAssemblyTestResult=>"+needleAssemblyTestResult);
+		
+		if(batteryTestResult && insulinReservoirTestResult &&
+				glucagonTestResult && pumpTestResult
+				&& alarmTestResult && sensorTestResult && needleAssemblyTestResult){
+			return true;
 		}
-		return true;
+		return false;
 	}
 	
 	public int getId() {

@@ -16,6 +16,8 @@ public class AppSettings {
 	
 	private Date dob;
 	
+	private boolean isManualInterventionRequired;
+	
 	private String patientId;
 	
 	private boolean isBolusConfirmed;
@@ -178,6 +180,14 @@ public class AppSettings {
 
 	public void setTdd(int tdd) {
 		this.tdd = tdd;
+	}
+
+	public boolean isManualInterventionRequired() {
+		return isManualInterventionRequired;
+	}
+
+	public void setManualInterventionRequired(boolean isManualInterventionRequired) {
+		this.isManualInterventionRequired = isManualInterventionRequired;
 	}
 	
 

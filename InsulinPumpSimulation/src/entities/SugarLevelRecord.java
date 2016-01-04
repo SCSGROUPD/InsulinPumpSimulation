@@ -14,11 +14,14 @@ import org.hibernate.annotations.NamedQuery;
 
 @Entity
 @NamedQueries({
-		@NamedQuery(name = "SQL_GET_GRAPH_DATA", 
-				query = "SELECT avg(x.sugarLevel) as sugarLevel, sum(x.bolusInjectedInjected) as bolus,"
-						+ "sum(x.basalInjectedInjected) as basal, sum(x.glucagonInjected) as glucogan, x.recordedTime as  day FROM "
-						+ "SugarLevelRecord x where x.recordedTime "
-						+ "between ? and ? GROUP BY DATE_FORMAT(x.recordedTime, '%d/%m/%Y') order by day") })
+		@NamedQuery(name = "SQL_GET_GRAPH_DATA", query = "SELECT avg(x.sugarLevel) as sugarLevel, sum(x.bolusInjectedInjected) as bolus,"
+				+ "sum(x.basalInjectedInjected) as basal, sum(x.glucagonInjected) as glucogan, x.recordedTime as  day FROM "
+				+ "SugarLevelRecord x where x.recordedTime "
+				+ "between ? and ? GROUP BY DATE_FORMAT(x.recordedTime, '%d/%m/%Y') order by day"),
+
+		@NamedQuery(name = "SQL_GET_GRAPH_DATA_HOURS", query = "SELECT avg(x.sugarLevel) as sugarLevel, sum(x.bolusInjectedInjected) as bolus,"
+				+ "sum(x.basalInjectedInjected) as basal, sum(x.glucagonInjected) as glucogan, x.recordedTime as  day FROM "
+				+ "SugarLevelRecord x where x.recordedTime between ? and ? GROUP BY DATE_FORMAT(x.recordedTime, '%h') order by day") })
 public class SugarLevelRecord {
 
 	@Id
@@ -26,13 +29,12 @@ public class SugarLevelRecord {
 	private int id;
 
 	private int sugarLevel;
-	
-	private double bolusInjectedInjected;
-	
-	private double basalInjectedInjected;
-	
-	private double glucagonInjected;
 
+	private double bolusInjectedInjected;
+
+	private double basalInjectedInjected;
+
+	private double glucagonInjected;
 
 	public double getBolusInjectedInjected() {
 		return bolusInjectedInjected;

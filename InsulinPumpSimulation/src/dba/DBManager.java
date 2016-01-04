@@ -15,8 +15,6 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.transform.Transformers;
-import org.hibernate.type.DateType;
-import org.hibernate.type.DoubleType;
 
 import entities.ActivityLog;
 import entities.AppSettings;
@@ -189,12 +187,13 @@ public class DBManager {
 	 * 
 	 * @param obj
 	 */
-	public void save(Object obj) {
+	public Object save(Object obj) {
 		Session session = this.sessionFactory.openSession();
 		Transaction tx = session.beginTransaction();
 		session.persist(obj);
 		tx.commit();
 		session.close();
+		return obj;
 	}
 
 	/**

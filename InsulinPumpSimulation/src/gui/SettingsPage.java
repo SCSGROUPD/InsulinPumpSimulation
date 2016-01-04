@@ -398,7 +398,15 @@ public class SettingsPage {
 
 		Button btnCheckButton = new Button(shlSettings, SWT.CHECK);
 		btnCheckButton.setBounds(10, 436, 13, 16);
-
+		btnCheckButton.setSelection(settings.isManualInterventionRequired());
+		btnCheckButton.addSelectionListener(new SelectionAdapter() {
+		        @Override
+		        public void widgetSelected(SelectionEvent event) {
+		            Button btn = (Button) event.getSource();
+		            settings.setManualInterventionRequired(btn.getSelection());
+		        }
+		    });
+		
 		txtGetconfirmationFromPatient = new Text(shlSettings, SWT.NONE);
 		txtGetconfirmationFromPatient.setText("Get confirmation from patient for Bolus Injection");
 		txtGetconfirmationFromPatient.setBounds(29, 437, 280, 21);

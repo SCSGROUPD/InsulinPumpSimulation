@@ -119,6 +119,10 @@ public class GraphView {
 		dateTimeTo = new DateTime(shlGraphView, SWT.BORDER);
 		dateTimeTo.setBounds(159, 19, 80, 24);
 		
+		Button btnCheckButton = new Button(shlGraphView, SWT.CHECK);
+		btnCheckButton.setBounds(366, 19, 132, 16);
+		btnCheckButton.setText("Show Hourly Data");
+		
 		Calendar cal = new GregorianCalendar();
 		cal.set(dateTimeTo.getYear(), dateTimeTo.getMonth(), dateTimeTo.getDay());
 		cal.add(Calendar.MONTH, -1);

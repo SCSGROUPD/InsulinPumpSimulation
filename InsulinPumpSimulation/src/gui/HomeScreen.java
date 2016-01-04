@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -50,6 +52,9 @@ public class HomeScreen {
 	private Label lblStatusIndicator;
 	private Label lblStatusMessage;
 	private volatile String faultyText = "";
+	private Button btnPostPone;
+	private Button btnSkipBolus;
+	private Button buttonInjBolus;
 
 	private Map<Integer, Integer> preConditions = new HashMap();
 
@@ -127,17 +132,15 @@ public class HomeScreen {
 	public void setSugarLevel(int sugarLevel) {
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
-				progressBarSugarLevel.setSelection(sugarLevel);
+				progressBarSugarLevel.setSelection(100);
 				progressBarSugarLevel.setState(SWT.NORMAL);
 				progressBarSugarLevel.setToolTipText(sugarLevel + "mg/dl");
-				if (sugarLevel <= 70 || sugarLevel > 140) {
+				if ((sugarLevel >= 65 && sugarLevel <= 75) || (sugarLevel >= 115 && sugarLevel <= 125)) {
+					progressBarSugarLevel.setState(SWT.PAUSE);
+				} else if (sugarLevel <= 64 || sugarLevel > 125) {
 					dbMgr.setActivity("Sugar level is beyound the range. Sugar level is " + sugarLevel + " md/dl",
 							Constants.ACTIVITY_STATUS_ERROR);
 					progressBarSugarLevel.setState(SWT.ERROR);
-				} else {
-					// dbMgr.setActivity("Sugar level is within the range. Sugar
-					// level is " + sugarLevel + " md/dl",
-					// Constants.ACTIVITY_STATUS_OK);
 				}
 			}
 		}));
@@ -172,9 +175,6 @@ public class HomeScreen {
 		} else if (value > 30 && value <= 40) {
 			dbMgr.setActivity("Battery power is weak!", Constants.ACTIVITY_STATUS_WARNING);
 			pbBattery.setState(SWT.PAUSED);
-		} else {
-			// dbMgr.setActivity("Battery power stable",
-			// Constants.ACTIVITY_STATUS_OK);
 		}
 	}
 
@@ -251,36 +251,35 @@ public class HomeScreen {
 	 * Set the meal name & remaining time
 	 */
 	public void setMealTime(AppSettings setting) {
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-		String str = sdf.format(new Date());
-		float currTime = Integer.parseInt(str.split(":")[0]) + Integer.parseInt(str.split(":")[1]) / 100;
-		float breakFastTime = Integer.parseInt(setting.getBreakfastTime().split(":")[0])
-				+ Integer.parseInt(setting.getBreakfastTime().split(":")[1]) / 100;
-		float lunchTime = Integer.parseInt(setting.getLunchTime().split(":")[0])
-				+ Integer.parseInt(setting.getLunchTime().split(":")[1]) / 100;
-		float dinnerTime = Integer.parseInt(setting.getDinnerTime().split(":")[0])
-				+ Integer.parseInt(setting.getDinnerTime().split(":")[1]) / 100;
+
+		final long timeDiff = Utility.getTimeForNextMeal(setting, true);
 
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
-				String timeDiff = "00:00";
-				if (currTime <= breakFastTime || currTime > dinnerTime) {
-					timeDiff = Utility.getTimeDifference(str, setting.getBreakfastTime());
-				} else if (currTime > breakFastTime && currTime <= lunchTime) {
-					timeDiff = Utility.getTimeDifference(str, setting.getLunchTime());
-				} else {
-					timeDiff = Utility.getTimeDifference(str, setting.getDinnerTime());
-				}
-				lblMealTime.setText(timeDiff.split(":")[0] + " Hrs : " + timeDiff.split(":")[1] + " Mins");
-
-				float diffTime = Float.parseFloat(timeDiff.split(":")[0])
-						+ Float.parseFloat(timeDiff.split(":")[1]) / 100;
-				if (diffTime <= 0.15) {
+				long hours = timeDiff / 60;
+				long mins = timeDiff % 60;
+				lblMealTime.setText(hours + " Hrs : " + mins + " Mins");
+				
+				if (timeDiff <= Constants.MEAL_REMAINDER_INTERVAL) {
+					setBolusButtons(true);
 					dbMgr.setActivity("Next meal time warning activated!", Constants.ACTIVITY_STATUS_WARNING);
-					Utility.makeNoise(Constants.SOUND_REMINDER);
+					Utility.initiateAlarm(Constants.SOUND_REMINDER);
+				} else if (timeDiff == 0 && !setting.isManualInterventionRequired()) {
+					injectBolus();
 				}
 			}
 		}));
+	}
+
+	/**
+	 * 
+	 */
+	public void injectBolus() {
+		Constants.LAST_BOLUS_INJECTED_TIME = System.currentTimeMillis();
+		Constants.IS_MEAL_POSTPONED = false;
+		Constants.MEAL_POSTPONED_TIME = 0;
+		Constants.RECENT_INJECTED_BOLUS = Constants.CURRENT_BOLUS_SESSION;
+		setBolusButtons(false);
 	}
 
 	/**
@@ -373,13 +372,26 @@ public class HomeScreen {
 						break;
 					}
 				}
-				
-				if(!pcr.getCurrentStatus()){
-					Utility.makeNoise(Constants.SOUND_REMINDER);
+
+				if (!pcr.getCurrentStatus()) {
+					Utility.initiateAlarm(Constants.SOUND_REMINDER);
 				}
 			}
 		}));
 
+	}
+
+	/**
+	 * Method to enable all the bolus buttons
+	 */
+	public void setBolusButtons(boolean value) {
+		Display.getDefault().asyncExec((new Runnable() {
+			public void run() {
+				btnPostPone.setEnabled(value);
+				btnSkipBolus.setEnabled(value);
+				buttonInjBolus.setEnabled(value);
+			}
+		}));
 	}
 
 	/**
@@ -476,15 +488,19 @@ public class HomeScreen {
 
 		lblMealName = new Label(grpNextBolusDosage, SWT.NONE);
 		lblMealName.setText("Next Meal in :- ");
-		lblMealName.setFont(SWTResourceManager.getFont("Calibri", 12, SWT.NORMAL));
+		lblMealName.setFont(SWTResourceManager.getFont("Calibri", 11, SWT.NORMAL));
 		lblMealName.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblMealName.setBounds(10, 25, 101, 20);
+		lblMealName.setBounds(10, 25, 94, 20);
 
-		Button btnAdjustCarb = new Button(grpNextBolusDosage, SWT.NONE);
-		btnAdjustCarb.addSelectionListener(new SelectionAdapter() {
+		btnSkipBolus = new Button(grpNextBolusDosage, SWT.NONE);
+		btnSkipBolus.setEnabled(false);
+		btnSkipBolus.addSelectionListener(new SelectionAdapter() {
 			// .setVisible(true)@Override
 			public void widgetSelected(SelectionEvent e) {
-				Display display = Display.getDefault();
+				Constants.LAST_BOLUS_INJECTED_TIME = System.currentTimeMillis();
+				Constants.RECENT_INJECTED_BOLUS = Constants.CURRENT_BOLUS_SESSION;
+				setBolusButtons(false);
+	/*			Display display = Display.getDefault();
 				createContents();
 				CARBRemainderPage crp = new CARBRemainderPage();
 				crp.open(false);
@@ -492,21 +508,41 @@ public class HomeScreen {
 					if (!display.readAndDispatch()) {
 						display.sleep();
 					}
-				}
+				}*/
 			}
 		});
-		btnAdjustCarb.setBounds(238, 24, 86, 22);
-		btnAdjustCarb.setText("Adjust CARB");
+		btnSkipBolus.setBounds(283, 23, 66, 22);
+		btnSkipBolus.setText("Skip Bolus");
 
 		lblMealTime = new Label(grpNextBolusDosage, SWT.NONE);
-		lblMealTime.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD | SWT.ITALIC));
+		lblMealTime.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD | SWT.ITALIC));
 		lblMealTime.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblMealTime.setBounds(117, 26, 101, 20);
+		lblMealTime.setBounds(110, 27, 101, 20);
 
-		Button buttonInjBolus = new Button(grpNextBolusDosage, SWT.NONE);
+		buttonInjBolus = new Button(grpNextBolusDosage, SWT.NONE);
+		buttonInjBolus.setEnabled(false);
 		buttonInjBolus.setFont(SWTResourceManager.getFont("Segoe UI", 8, SWT.BOLD));
 		buttonInjBolus.setText("Inject Bolus");
-		buttonInjBolus.setBounds(330, 24, 101, 21);
+		buttonInjBolus.setBounds(355, 24, 76, 21);
+		buttonInjBolus.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				injectBolus();
+			}
+		});
+		
+		btnPostPone = new Button(grpNextBolusDosage, SWT.NONE);
+		btnPostPone.setEnabled(false);
+		btnPostPone.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				btnPostPone.setEnabled(false);
+				Constants.MEAL_POSTPONED_TIME = System.currentTimeMillis();
+				Constants.IS_MEAL_POSTPONED = true;
+			}
+		});
+		btnPostPone.setBounds(217, 23, 60, 22);
+		btnPostPone.setText("Postpone");
 
 		Group grpActivityLog = new Group(shlHomeScreen, SWT.NONE);
 		grpActivityLog.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -564,24 +600,23 @@ public class HomeScreen {
 		lblClock.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblClock.setBounds(456, 19, 152, 25);
 		lblClock.setText(new SimpleDateFormat("HH:mm:ss").format(new Date()));
-		new Thread() {
+		
+		// Timer to display running date & Time
+		// Updates for every 1 sec
+		Timer timer = new Timer("clock timer", true);
+		timer.schedule(new TimerTask() {
+			@Override
 			public void run() {
-				while (true) {
-					try {
-						Display display = Display.getDefault();
-						Thread.sleep(1000);
-						display.asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								lblClock.setText(new SimpleDateFormat("d MMM yyyy, HH:mm:ss ").format(new Date()));
-							}
-						});
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+				Display display = Display.getDefault();
+				display.asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						lblClock.setText(new SimpleDateFormat("d MMM yyyy, HH:mm:ss ").format(new Date()));
 					}
-				}
+				});
 			}
-		}.start();
+		}, 1000l, 1000l);
+		
 
 		Label lblLogo = new Label(shlHomeScreen, SWT.NONE);
 		lblLogo.setImage(SWTResourceManager.getImage(HomeScreen.class, "/resources/Uni_Logo.gif"));
@@ -621,11 +656,8 @@ public class HomeScreen {
 		lblNewLabel.setText("Expected Value 70 - 120 mg/dl");
 
 		progressBarSugarLevel = new ProgressBar(shlHomeScreen, SWT.NONE);
-		progressBarSugarLevel.setMaximum(300);
-		progressBarSugarLevel.setMinimum(40);
 		progressBarSugarLevel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		progressBarSugarLevel.setBounds(166, 92, 274, 17);
 
 	}
-
 }
