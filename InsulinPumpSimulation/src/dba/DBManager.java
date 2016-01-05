@@ -88,7 +88,7 @@ public class DBManager {
 			activity = date + "::Critical : " + activity;
 		}
 		ActivityLog al = new ActivityLog();
-		al.setActivity(activity);
+		al.setActivity(activity + "\n");
 		save(al);
 	}
 

@@ -2,6 +2,8 @@ package util;
 
 public class Constants {
 	
+	public static volatile String CURRENT_CYCLE_STATUS ="";
+	
 	public static volatile int MEAL_REMAINDER_INTERVAL = 15; // in minutes
 	
 	// triggered from postpone button @ Home screen
@@ -14,6 +16,8 @@ public class Constants {
 	public static final int LUNCH_BOLUS=2;
 	
 	public static final int DINNER_BOLUS=3;
+	
+	public static volatile boolean APP_IN_MANUAL_MODE = true;
 	
 	public static volatile int CURRENT_BOLUS_SESSION =0;
 	

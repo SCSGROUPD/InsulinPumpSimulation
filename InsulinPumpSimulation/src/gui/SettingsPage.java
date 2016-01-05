@@ -18,6 +18,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import dba.DBManager;
 import entities.AppSettings;
+import util.Constants;
 
 public class SettingsPage {
 
@@ -41,7 +42,9 @@ public class SettingsPage {
 	private Spinner spinnerLNM;
 	private DBManager dbMgr;
 	private AppSettings settings;
-
+	private HomeScreen homeScreen;
+	
+	
 	// Injected from Spring
 	private ResetPassword resetPassword;
 
@@ -61,7 +64,7 @@ public class SettingsPage {
 	public static void main(String[] args) {
 		try {
 			SettingsPage window = new SettingsPage();
-			window.open(null);
+			window.open(null,null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -70,8 +73,9 @@ public class SettingsPage {
 	/**
 	 * Open the window.
 	 */
-	public void open(DBManager dbMgr) {
+	public void open(DBManager dbMgr, HomeScreen hs) {
 		this.dbMgr = dbMgr;
+		this.homeScreen = hs;
 		settings = dbMgr.getAppSettings();
 		if (settings == null) {
 			settings = new AppSettings();
@@ -154,17 +158,17 @@ public class SettingsPage {
 		Label lblBrkfastCal = new Label(grpCARBSettings, SWT.NONE);
 		lblBrkfastCal.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblBrkfastCal.setBounds(10, 30, 106, 21);
-		lblBrkfastCal.setText("Breakfast Calories");
+		lblBrkfastCal.setText("Breakfast CARB");
 
 		Label lblLunchCal = new Label(grpCARBSettings, SWT.NONE);
 		lblLunchCal.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblLunchCal.setText("Lunch Calories");
+		lblLunchCal.setText("Lunch CARB");
 		lblLunchCal.setBounds(10, 67, 106, 15);
 
 		Label lblDinnerCal = new Label(grpCARBSettings, SWT.NONE);
 		lblDinnerCal.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblDinnerCal.setBounds(10, 102, 106, 15);
-		lblDinnerCal.setText("Dinner Calories");
+		lblDinnerCal.setText("Dinner CARB");
 
 		Label lblBreakfastTime = new Label(grpCARBSettings, SWT.NONE);
 		lblBreakfastTime.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -280,7 +284,7 @@ public class SettingsPage {
 		Label lblBOL = new Label(groupSettings, SWT.NONE);
 		lblBOL.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblBOL.setBounds(358, 168, 126, 21);
-		lblBOL.setText("Usually 40% of TDD");
+		lblBOL.setText("Usually 60% of TDD");
 
 		Label lblBasalInsulin = new Label(groupSettings, SWT.NONE);
 		lblBasalInsulin.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -290,7 +294,7 @@ public class SettingsPage {
 		Label lblBSL = new Label(groupSettings, SWT.NONE);
 		lblBSL.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblBSL.setBounds(358, 135, 126, 21);
-		lblBSL.setText("Usually 60% of TDD");
+		lblBSL.setText("Usually 40% of TDD");
 
 		Label lblICR = new Label(groupSettings, SWT.NONE);
 		lblICR.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -398,12 +402,16 @@ public class SettingsPage {
 
 		Button btnCheckButton = new Button(shlSettings, SWT.CHECK);
 		btnCheckButton.setBounds(10, 436, 13, 16);
-		btnCheckButton.setSelection(settings.isManualInterventionRequired());
+		btnCheckButton.setSelection(Constants.APP_IN_MANUAL_MODE);
 		btnCheckButton.addSelectionListener(new SelectionAdapter() {
 		        @Override
 		        public void widgetSelected(SelectionEvent event) {
 		            Button btn = (Button) event.getSource();
 		            settings.setManualInterventionRequired(btn.getSelection());
+		            Constants.APP_IN_MANUAL_MODE = btn.getSelection();
+		            if(!Constants.APP_IN_MANUAL_MODE){
+		            	homeScreen.setBolusButtons(Constants.APP_IN_MANUAL_MODE);
+		            }
 		        }
 		    });
 		
@@ -432,8 +440,8 @@ public class SettingsPage {
 			textISF.setText(Integer.toString(1800/tdd));
 			textICR.setText(Integer.toString(500/tdd));
 			
-			spinnerBasalaInsulin.setSelection((int)Math.round(0.6*tdd));
-			spinnerBolusInsulin.setSelection((int)Math.round(0.4*tdd));
+			spinnerBasalaInsulin.setSelection((int)Math.round(0.4*tdd));
+			spinnerBolusInsulin.setSelection((int)Math.round(0.6*tdd));
 			
 			settings.setWeight(wt);
 			settings.setTdd(tdd);

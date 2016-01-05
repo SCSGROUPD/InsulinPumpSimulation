@@ -70,10 +70,14 @@ public class Utility {
 		if (Constants.RECENT_INJECTED_BOLUS == Constants.DINNER_BOLUS
 				&& (currTime <= breakFastTime || currTime > dinnerTime)) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.BREAKFAST_BOLUS;
-			timeDiff = breakFastTime - currTime; // Utility.getTimeDifference(str,
+			// Greater than 3:00 PM
+			if(currTime > 15*60){
+				timeDiff = breakFastTime+ (24*60) - currTime; 
+			}else
+				timeDiff = breakFastTime  - currTime; 
 
-		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.BREAKFAST_BOLUS && currTime > breakFastTime
-				&& currTime < dinnerTime) {
+		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.BREAKFAST_BOLUS 
+				&& currTime > breakFastTime	&& currTime < dinnerTime) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.LUNCH_BOLUS;
 			timeDiff = lunchTime - currTime;
 		} else if(Constants.RECENT_INJECTED_BOLUS == Constants.LUNCH_BOLUS && currTime > lunchTime){

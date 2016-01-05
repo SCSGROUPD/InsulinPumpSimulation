@@ -28,8 +28,9 @@ public class ApplicationMonitor {
 	private HomeScreen appHomeScreen;
 	private AppSettings settings;
 
-	@Scheduled(initialDelay = 2000, fixedRate = 10000)
+	@Scheduled(initialDelay = 2000, fixedRate = 5000)
 	public void startMonitorThread() {
+		Constants.CURRENT_CYCLE_STATUS = "";
 		Map<Integer, Integer> pcs = dbMgr.getPreconditions();
 		settings = dbMgr.getAppSettings();
 		int sugarLevel = dbMgr.getSugarLevel();
@@ -54,6 +55,7 @@ public class ApplicationMonitor {
 		}
 		basalCounter++;
 		record.setSugarLevel(sugarLevel);
+		injectCorrection(sugarLevel, record);
 		dbMgr.save(record);
 	}
 
@@ -78,6 +80,29 @@ public class ApplicationMonitor {
 		this.appHomeScreen = appHomeScreen;
 	}
 
+	/**
+	 * 
+	 * @param sugarLevel
+	 * @param slr
+	 */
+	public void injectCorrection(int sugarLevel, SugarLevelRecord slr){
+		DecimalFormat twoDForm = new DecimalFormat("#.##");
+		if(sugarLevel > 120){
+			float diff = sugarLevel - 100;
+			Double bolus = Double.valueOf(twoDForm.format(diff/(1800/settings.getTdd())));
+			dbMgr.setActivity("Injected Correction BOLUS of " + bolus + "mg/dl", Constants.ACTIVITY_STATUS_OK);
+			appHomeScreen.setStatus(Constants.ICON_OK_IMG, "Injected Correction BOLUS of " + bolus + "mg/dl");
+			slr.setBolusInjectedInjected(slr.getBolusInjectedInjected() + bolus);
+		}else if(sugarLevel < 70){
+			float diff = 100 - sugarLevel;
+			Double glucagon  = Double.valueOf(twoDForm.format(diff/15));
+			dbMgr.setActivity("Injected Correction Glucagon of " + glucagon + "gms", Constants.ACTIVITY_STATUS_OK);
+			appHomeScreen.setStatus(Constants.ICON_OK_IMG, "Injected Correction BOLUS of " + glucagon + "gms");
+			slr.setGlucagonInjected(slr.getGlucagonInjected() + glucagon);
+		}
+	}
+	
+	
 /*	private void mealRemainder() {
 		if (Constants.IS_MEAL_POSTPONED && (System.currentTimeMillis() - Constants.MEAL_POSTPONED_TIME)
 				/ (1000 * 60) > Constants.MEAL_REMAINDER_INTERVAL) {

@@ -26,6 +26,7 @@ import dba.DBManager;
 import entities.ActivityLog;
 import entities.AppSettings;
 import entities.PreConditionsRecord;
+import entities.SugarLevelRecord;
 import util.Constants;
 import util.Utility;
 
@@ -189,7 +190,6 @@ public class HomeScreen {
 			public void run() {
 				// Don't over ride if the app is already in error state
 				String icon = iconPath;
-				String statusText = statusTxt;
 				/*
 				 * if (isPreConditionsFailed) { if (faultyText.isEmpty()) {
 				 * faultyText = statusTxt; } statusText = faultyText; icon =
@@ -199,11 +199,11 @@ public class HomeScreen {
 					if (faultyText.isEmpty()) {
 						faultyText = statusTxt;
 					}
-					statusText = faultyText;
 					icon = Constants.ICON_ERROR_IMG;
 				}
+				Constants.CURRENT_CYCLE_STATUS += statusTxt +"\n";
 				lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, icon));
-				lblStatusMessage.setText(statusTxt);
+				lblStatusMessage.setText(Constants.CURRENT_CYCLE_STATUS);
 			}
 		}));
 	}
@@ -280,6 +280,25 @@ public class HomeScreen {
 		Constants.MEAL_POSTPONED_TIME = 0;
 		Constants.RECENT_INJECTED_BOLUS = Constants.CURRENT_BOLUS_SESSION;
 		setBolusButtons(false);
+		AppSettings setting = dbMgr.getAppSettings();
+		
+		float bolus =0;
+		if(Constants.CURRENT_BOLUS_SESSION == Constants.BREAKFAST_BOLUS){
+			bolus = setting.getBreakfastCalories()/(500/setting.getTdd());
+		}else if(Constants.CURRENT_BOLUS_SESSION == Constants.LUNCH_BOLUS){
+			bolus = setting.getLunchcalories()/(500/setting.getTdd());
+		}else{
+			bolus = setting.getDinnerCalories()/(500/setting.getTdd());
+		}
+		
+		SugarLevelRecord slr = new SugarLevelRecord();
+		slr.setBolusInjectedInjected(bolus);
+		dbMgr.save(slr);
+		
+		dbMgr.setActivity("Bolus injected : " + bolus + "mg/dl", Constants.ACTIVITY_STATUS_OK);
+		
+		setStatus(Constants.ICON_OK_IMG, "Bolus injected : " + bolus + "mg/dl");
+		
 	}
 
 	/**
@@ -291,6 +310,7 @@ public class HomeScreen {
 	 */
 	public void setPreConditions(Map<Integer, Integer> pcs, PreConditionsRecord pcr) {
 		dbMgr.setActivity("Performing check on all critical indicators", Constants.ACTIVITY_STATUS_OK);
+
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
 				for (Entry<Integer, Integer> entry : pcs.entrySet()) {
@@ -384,12 +404,16 @@ public class HomeScreen {
 	/**
 	 * Method to enable all the bolus buttons
 	 */
-	public void setBolusButtons(boolean value) {
+	public void setBolusButtons(final boolean value) {
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
-				btnPostPone.setEnabled(value);
-				btnSkipBolus.setEnabled(value);
-				buttonInjBolus.setEnabled(value);
+				boolean v =value;
+				if(!Constants.APP_IN_MANUAL_MODE){
+					v = false;
+				}
+				btnPostPone.setEnabled(v);
+				btnSkipBolus.setEnabled(v);
+				buttonInjBolus.setEnabled(v);
 			}
 		}));
 	}
@@ -553,7 +577,7 @@ public class HomeScreen {
 		txtActivityLog = new StyledText(grpActivityLog, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 		txtActivityLog.setDoubleClickEnabled(false);
 		txtActivityLog.setEditable(false);
-		txtActivityLog.setFont(SWTResourceManager.getFont("Segoe UI", 11, SWT.NORMAL));
+		txtActivityLog.setFont(SWTResourceManager.getFont("Verdana", 8, SWT.NORMAL));
 		txtActivityLog.setBounds(10, 21, 421, 240);
 		Button btnHelp = new Button(shlHomeScreen, SWT.NONE);
 		btnHelp.setBounds(467, 446, 81, 25);
@@ -577,12 +601,13 @@ public class HomeScreen {
 		btnGraphView.setText("Graph View");
 
 		Button btnSettings = new Button(shlHomeScreen, SWT.NONE);
+		HomeScreen hs = this;
 		btnSettings.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Display display = Display.getDefault();
 				createContents();
-				settings.open(dbMgr);
+				settings.open(dbMgr,hs);
 				while (null != settings.shlSettings && !settings.shlSettings.isDisposed()) {
 					if (!display.readAndDispatch()) {
 						display.sleep();
