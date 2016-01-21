@@ -29,6 +29,8 @@ public class PreConditionsRecord {
 	private boolean sensorTestResult;
 	
 	private boolean needleAssemblyTestResult;
+	
+	private boolean currentStatus = true;
 
 	/**
 	 * 
@@ -44,12 +46,12 @@ public class PreConditionsRecord {
 //		System.out.println("sensorTestResult=>"+sensorTestResult);
 //		System.out.println("needleAssemblyTestResult=>"+needleAssemblyTestResult);
 		
-		if(batteryTestResult && insulinReservoirTestResult &&
+		/*if(batteryTestResult && insulinReservoirTestResult &&
 				glucagonTestResult && pumpTestResult
 				&& alarmTestResult && sensorTestResult && needleAssemblyTestResult){
 			return true;
-		}
-		return false;
+		}*/
+		return currentStatus;
 	}
 	
 	public int getId() {
@@ -122,6 +124,14 @@ public class PreConditionsRecord {
 
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public boolean isCurrentStatus() {
+		return currentStatus;
+	}
+
+	public void setCurrentStatus(boolean currentStatus) {
+		this.currentStatus = currentStatus;
 	}
 	
 }

@@ -176,6 +176,7 @@ public class HomeScreen {
 		pcr.setBatteryTestResult(true);
 		pbBattery.setToolTipText(value + "%");
 		if (value <= 30) {
+			pcr.setCurrentStatus(false);
 			dbMgr.setActivity("Battery power too low!", Constants.ACTIVITY_STATUS_ERROR);
 			pcr.setBatteryTestResult(false);
 			pbBattery.setState(SWT.ERROR);
@@ -220,6 +221,7 @@ public class HomeScreen {
 		pbInsulinReservoir.setState(SWT.NORMAL);
 		pbInsulinReservoir.setToolTipText(value + "%");
 		if (value <= 30) {
+			pcr.setCurrentStatus(false);
 			pcr.setInsulinReservoirTestResult(false);
 			pbInsulinReservoir.setState(SWT.ERROR);
 			dbMgr.setActivity("Insulin reservoir in critical state. Please refill it", Constants.ACTIVITY_STATUS_ERROR);
@@ -241,6 +243,7 @@ public class HomeScreen {
 		pbGlucagonReservoir.setToolTipText(value + "%");
 		if (value <= 30) {
 			pcr.setGlucagonTestResult(false);
+			pcr.setCurrentStatus(false);
 			pbGlucagonReservoir.setState(SWT.ERROR);
 			dbMgr.setActivity("Glucagon reservoir needs to be refilled immediately.", Constants.ACTIVITY_STATUS_ERROR);
 		} else if (value > 30 && value <= 40) {
@@ -339,6 +342,7 @@ public class HomeScreen {
 							pcr.setPumpTestResult(true);
 						} else {
 							pcr.setPumpTestResult(false);
+							pcr.setCurrentStatus(false);
 							lblPumpStatus.setText("FAULTY");
 							lblPumpStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
 						}
@@ -350,6 +354,7 @@ public class HomeScreen {
 							lblGlucoseSensorstatus.setText("OK");
 							lblGlucoseSensorstatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 						} else {
+							pcr.setCurrentStatus(false);
 							pcr.setSensorTestResult(false);
 							dbMgr.setActivity("Blood Glucose sensor assembly is not working as expected",
 									Constants.ACTIVITY_STATUS_ERROR);
@@ -368,6 +373,7 @@ public class HomeScreen {
 							lblNeedleStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 						} else {
 							pcr.setNeedleAssemblyTestResult(false);
+							pcr.setCurrentStatus(false);
 							dbMgr.setActivity("Needle assembly is not working as expected",
 									Constants.ACTIVITY_STATUS_ERROR);
 							lblNeedleStatus.setText("FAULTY");
@@ -383,6 +389,7 @@ public class HomeScreen {
 							lblAlarmStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 						} else {
 							pcr.setAlarmTestResult(false);
+							pcr.setCurrentStatus(false);
 							dbMgr.setActivity("Alarm is not working as expected", Constants.ACTIVITY_STATUS_ERROR);
 							lblAlarmStatus.setText("FAULTY");
 							lblAlarmStatus.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
