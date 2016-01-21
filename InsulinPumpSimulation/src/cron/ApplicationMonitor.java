@@ -37,7 +37,8 @@ public class ApplicationMonitor {
 		int sugarLevel = dbMgr.getSugarLevel();
 		appHomeScreen.setSugarLevel(sugarLevel);
 		appHomeScreen.setActivityLog(dbMgr.getActivities());
-		// check Preconditions
+
+		//
 		PreConditionsRecord pcr = new PreConditionsRecord();
 		appHomeScreen.setPreConditions(pcs, pcr);
 		appHomeScreen.setMealTime(settings);

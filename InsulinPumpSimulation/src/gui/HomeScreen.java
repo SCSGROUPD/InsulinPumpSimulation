@@ -1,7 +1,5 @@
 package gui;
 
-import java.awt.event.KeyAdapter;
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,13 +14,13 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import dba.DBManager;
@@ -32,7 +30,6 @@ import entities.PreConditionsRecord;
 import entities.SugarLevelRecord;
 import util.Constants;
 import util.Utility;
-import org.eclipse.swt.widgets.Text;
 
 /**
  * The Main SWT Screen of Application
