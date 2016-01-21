@@ -41,6 +41,13 @@ public class Constants {
 	
 	public static final String ICON_WARNING_IMG ="/resources/warning-icon.png";
 	
+	public static final String ICON_INJECTION_IMG ="/resources/injection.png";
+	
+	public static final String ICON_SAD_SMILEY_IMG ="/resources/35.png";
+	
+	public static final String HELP_FILE ="D:/workspace/scs/InsulinPumpSimulation/"
+			+ "InsulinPumpSimulation/src/resources/help.pdf";
+	
 	public static final String ICON_ERROR_IMG ="/resources/notok-icon.png";
 	
 	public static final String COMPONENT_PUMP ="COMPONENT_PUMP";

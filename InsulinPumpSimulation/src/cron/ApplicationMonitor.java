@@ -22,6 +22,7 @@ public class ApplicationMonitor {
 	public static volatile int latestBolusUnits = 0;
 	public static volatile long latestBolusTime = 0;
 	private int basalCounter = 0;
+	private volatile boolean isPreconditionStatusUpdated = false;
 
 	// Injected from Spring
 	private DBManager dbMgr;
@@ -42,6 +43,17 @@ public class ApplicationMonitor {
 		appHomeScreen.setMealTime(settings);
 		PreConditionsRecord pc = (PreConditionsRecord) dbMgr.save(pcr);
 
+		if(!pc.getCurrentStatus()){
+			isPreconditionStatusUpdated = false;
+			appHomeScreen.setStatus(Constants.ICON_SAD_SMILEY_IMG, 
+					"OOPS! Faulty Critical Components!");
+			return;
+		}else if(isPreconditionStatusUpdated){
+			isPreconditionStatusUpdated = true;
+			appHomeScreen.setStatus(Constants.ICON_OK_IMG, 
+					"Application is healthy!");
+		}
+		
 		/*
 		 * if(pcr.getCurrentStatus()){
 		 * appHomeScreen.setStatus(Constants.ICON_OK_IMG,
@@ -91,13 +103,13 @@ public class ApplicationMonitor {
 			float diff = sugarLevel - 100;
 			Double bolus = Double.valueOf(twoDForm.format(diff/(1800/settings.getTdd())));
 			dbMgr.setActivity("Injected Correction BOLUS of " + bolus + "mg/dl", Constants.ACTIVITY_STATUS_OK);
-			appHomeScreen.setStatus(Constants.ICON_OK_IMG, "Injected Correction BOLUS of " + bolus + "mg/dl");
+			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, "Injected Correction BOLUS of " + bolus + "mg/dl");
 			slr.setBolusInjectedInjected(slr.getBolusInjectedInjected() + bolus);
 		}else if(sugarLevel < 70){
 			float diff = 100 - sugarLevel;
 			Double glucagon  = Double.valueOf(twoDForm.format(diff/15));
 			dbMgr.setActivity("Injected Correction Glucagon of " + glucagon + "gms", Constants.ACTIVITY_STATUS_OK);
-			appHomeScreen.setStatus(Constants.ICON_OK_IMG, "Injected Correction BOLUS of " + glucagon + "gms");
+			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, "Injected Correction Glucagon of " + glucagon + "gms");
 			slr.setGlucagonInjected(slr.getGlucagonInjected() + glucagon);
 		}
 	}
@@ -119,8 +131,8 @@ public class ApplicationMonitor {
 		if ((settings.getBasal() > 0) && (pcStatus == true)) {
 			DecimalFormat df = new DecimalFormat("####0.00");
 			Double basalUnit = Double.valueOf(df.format((double) settings.getBasal() / 48.00));
-			dbMgr.setActivity(basalUnit + " md/dl of BASAL INJECTED.", Constants.ACTIVITY_STATUS_OK);
-			appHomeScreen.setStatus(Constants.ICON_OK_IMG, basalUnit + " md/dl of BASAL INJECTED ");
+			dbMgr.setActivity(basalUnit + " mg/dl of BASAL INJECTED.", Constants.ACTIVITY_STATUS_OK);
+			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, basalUnit + " mg/dl of BASAL INJECTED ");
 			sl.setBasalInjectedInjected(basalUnit);
 		} else {
 			System.out.println("Precondition status =====> " + settings.getBasal());

@@ -1,5 +1,7 @@
 package gui;
 
+import java.awt.event.KeyAdapter;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +16,7 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
@@ -29,6 +32,7 @@ import entities.PreConditionsRecord;
 import entities.SugarLevelRecord;
 import util.Constants;
 import util.Utility;
+import org.eclipse.swt.widgets.Text;
 
 /**
  * The Main SWT Screen of Application
@@ -51,11 +55,11 @@ public class HomeScreen {
 	private Label lblNeedleStatus;
 	private Label lblAlarmStatus;
 	private Label lblStatusIndicator;
-	private Label lblStatusMessage;
 	private volatile String faultyText = "";
 	private Button btnPostPone;
 	private Button btnSkipBolus;
 	private Button buttonInjBolus;
+	private AppSettings appSettings;
 
 	private Map<Integer, Integer> preConditions = new HashMap();
 
@@ -64,6 +68,7 @@ public class HomeScreen {
 	private GraphView graph;
 	private CARBRemainderPage carb;
 	private DBManager dbMgr;
+	private Text lblStatusMessage;
 
 	public SettingsPage getSettings() {
 		return settings;
@@ -134,7 +139,6 @@ public class HomeScreen {
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
 				progressBarSugarLevel.setSelection(100);
-				progressBarSugarLevel.setState(SWT.NORMAL);
 				progressBarSugarLevel.setToolTipText(sugarLevel + "mg/dl");
 				if ((sugarLevel >= 65 && sugarLevel <= 75) || (sugarLevel >= 115 && sugarLevel <= 125)) {
 					progressBarSugarLevel.setState(SWT.PAUSE);
@@ -142,6 +146,8 @@ public class HomeScreen {
 					dbMgr.setActivity("Sugar level is beyound the range. Sugar level is " + sugarLevel + " md/dl",
 							Constants.ACTIVITY_STATUS_ERROR);
 					progressBarSugarLevel.setState(SWT.ERROR);
+				}else{
+					progressBarSugarLevel.setState(SWT.NORMAL);
 				}
 			}
 		}));
@@ -251,11 +257,10 @@ public class HomeScreen {
 	 * Set the meal name & remaining time
 	 */
 	public void setMealTime(AppSettings setting) {
-
-		final long timeDiff = Utility.getTimeForNextMeal(setting, true);
-
+		this.appSettings = setting;
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
+				final long timeDiff = Utility.getTimeForNextMeal(setting, true);
 				long hours = timeDiff / 60;
 				long mins = timeDiff % 60;
 				lblMealTime.setText(hours + " Hrs : " + mins + " Mins");
@@ -263,7 +268,7 @@ public class HomeScreen {
 				if (timeDiff <= Constants.MEAL_REMAINDER_INTERVAL) {
 					setBolusButtons(true);
 					dbMgr.setActivity("Next meal time warning activated!", Constants.ACTIVITY_STATUS_WARNING);
-					Utility.initiateAlarm(Constants.SOUND_REMINDER);
+					Utility.playAlarm(Constants.SOUND_REMINDER);
 				} else if (timeDiff == 0 && !setting.isManualInterventionRequired()) {
 					injectBolus();
 				}
@@ -297,7 +302,7 @@ public class HomeScreen {
 		
 		dbMgr.setActivity("Bolus injected : " + bolus + "mg/dl", Constants.ACTIVITY_STATUS_OK);
 		
-		setStatus(Constants.ICON_OK_IMG, "Bolus injected : " + bolus + "mg/dl");
+		setStatus(Constants.ICON_INJECTION_IMG, "Bolus injected : " + bolus + "mg/dl");
 		
 	}
 
@@ -351,7 +356,7 @@ public class HomeScreen {
 							lblGlucoseSensorstatus.setText("FAULTY");
 							lblGlucoseSensorstatus
 									.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED));
-							setStatus(Constants.ICON_ERROR_IMG, "Check Critical Indicators!");
+							//setStatus(Constants.ICON_ERROR_IMG, "Check Critical Indicators!");
 						}
 
 						break;
@@ -394,7 +399,7 @@ public class HomeScreen {
 				}
 
 				if (!pcr.getCurrentStatus()) {
-					Utility.initiateAlarm(Constants.SOUND_REMINDER);
+					Utility.playAlarm(Constants.SOUND_REMINDER);
 				}
 			}
 		}));
@@ -408,7 +413,7 @@ public class HomeScreen {
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
 				boolean v =value;
-				if(!Constants.APP_IN_MANUAL_MODE){
+				if(!appSettings.isManualInterventionRequired()){
 					v = false;
 				}
 				btnPostPone.setEnabled(v);
@@ -423,6 +428,7 @@ public class HomeScreen {
 	 */
 	protected void createContents() {
 		shlHomeScreen = new Shell(Display.getDefault(), SWT.TITLE | SWT.CLOSE | SWT.BORDER);
+		shlHomeScreen.setImage(SWTResourceManager.getImage(HomeScreen.class, "/resources/health.png"));
 		shlHomeScreen.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		shlHomeScreen.setSize(748, 520);
 		shlHomeScreen.setText("TWO HARMONE SIMULATOR PUMP : GROUP D");
@@ -431,78 +437,78 @@ public class HomeScreen {
 		grpCriticalIndicators.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		grpCriticalIndicators.setFont(SWTResourceManager.getFont("Calibri", 12, SWT.BOLD));
 		grpCriticalIndicators.setText("Critical Indicators");
-		grpCriticalIndicators.setBounds(457, 43, 265, 388);
+		grpCriticalIndicators.setBounds(457, 133, 305, 279);
 
 		pbBattery = new ProgressBar(grpCriticalIndicators, SWT.NONE);
 		pbBattery.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		pbBattery.setBounds(132, 32, 123, 25);
+		pbBattery.setBounds(132, 32, 135, 17);
 
 		Label lblBattery = new Label(grpCriticalIndicators, SWT.NONE);
 		lblBattery.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblBattery.setBounds(10, 42, 55, 15);
+		lblBattery.setBounds(10, 32, 37, 15);
 		lblBattery.setText("Battery");
 
 		pbInsulinReservoir = new ProgressBar(grpCriticalIndicators, SWT.NONE);
 		pbInsulinReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		pbInsulinReservoir.setBounds(132, 79, 123, 25);
+		pbInsulinReservoir.setBounds(132, 68, 135, 17);
 
 		Label lblInsulinReservoir = new Label(grpCriticalIndicators, SWT.NONE);
 		lblInsulinReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblInsulinReservoir.setBounds(10, 89, 102, 15);
+		lblInsulinReservoir.setBounds(10, 68, 86, 15);
 		lblInsulinReservoir.setText("Insulin Reservoir");
 
 		pbGlucagonReservoir = new ProgressBar(grpCriticalIndicators, SWT.NONE);
 		pbGlucagonReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		pbGlucagonReservoir.setBounds(132, 131, 123, 25);
+		pbGlucagonReservoir.setBounds(132, 102, 135, 17);
 
 		Label lblGlucagonReservoir = new Label(grpCriticalIndicators, SWT.NONE);
 		lblGlucagonReservoir.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblGlucagonReservoir.setBounds(10, 141, 116, 15);
+		lblGlucagonReservoir.setBounds(10, 102, 102, 15);
 		lblGlucagonReservoir.setText("Glucagon Reservoir");
 
 		Label lblPump = new Label(grpCriticalIndicators, SWT.NONE);
 		lblPump.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblPump.setBounds(10, 207, 116, 15);
+		lblPump.setBounds(10, 149, 32, 15);
 		lblPump.setText("Pump");
 
 		Label lblBloodGlucoseSensor = new Label(grpCriticalIndicators, SWT.NONE);
 		lblBloodGlucoseSensor.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblBloodGlucoseSensor.setBounds(10, 251, 129, 15);
+		lblBloodGlucoseSensor.setBounds(10, 180, 114, 15);
 		lblBloodGlucoseSensor.setText("Blood Glucose Sensor");
 
 		Label lblNeedleAssembly = new Label(grpCriticalIndicators, SWT.NONE);
 		lblNeedleAssembly.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblNeedleAssembly.setBounds(10, 294, 116, 15);
+		lblNeedleAssembly.setBounds(10, 216, 91, 15);
 		lblNeedleAssembly.setText("Needle Assembly");
 
 		Label lblAalarm = new Label(grpCriticalIndicators, SWT.NONE);
 		lblAalarm.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblAalarm.setBounds(10, 342, 116, 15);
+		lblAalarm.setBounds(10, 255, 32, 15);
 		lblAalarm.setText("Alarm");
 
 		lblPumpStatus = new Label(grpCriticalIndicators, SWT.NONE);
 		lblPumpStatus.setText("OK");
 		lblPumpStatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
 		lblPumpStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblPumpStatus.setBounds(171, 202, 68, 25);
+		lblPumpStatus.setBounds(171, 144, 65, 21);
 
 		lblGlucoseSensorstatus = new Label(grpCriticalIndicators, SWT.NONE);
 		lblGlucoseSensorstatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
 		lblGlucoseSensorstatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblGlucoseSensorstatus.setText("OK");
-		lblGlucoseSensorstatus.setBounds(171, 251, 55, 25);
+		lblGlucoseSensorstatus.setBounds(171, 180, 65, 21);
 
 		lblNeedleStatus = new Label(grpCriticalIndicators, SWT.NONE);
 		lblNeedleStatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
 		lblNeedleStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblNeedleStatus.setText("OK");
-		lblNeedleStatus.setBounds(171, 294, 55, 25);
+		lblNeedleStatus.setBounds(171, 216, 65, 21);
 
 		lblAlarmStatus = new Label(grpCriticalIndicators, SWT.NONE);
 		lblAlarmStatus.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.BOLD));
 		lblAlarmStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblAlarmStatus.setText("OK");
-		lblAlarmStatus.setBounds(171, 342, 55, 25);
+		lblAlarmStatus.setBounds(171, 255, 65, 21);
 
 		Group grpNextBolusDosage = new Group(shlHomeScreen, SWT.NONE);
 		grpNextBolusDosage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -523,6 +529,7 @@ public class HomeScreen {
 			public void widgetSelected(SelectionEvent e) {
 				Constants.LAST_BOLUS_INJECTED_TIME = System.currentTimeMillis();
 				Constants.RECENT_INJECTED_BOLUS = Constants.CURRENT_BOLUS_SESSION;
+				Constants.IS_MEAL_POSTPONED = false;
 				setBolusButtons(false);
 	/*			Display display = Display.getDefault();
 				createContents();
@@ -583,6 +590,14 @@ public class HomeScreen {
 		btnHelp.setBounds(467, 446, 81, 25);
 		btnHelp.setText("Help");
 
+		btnHelp.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Help help = new Help();
+				help.open();
+			}
+		});
+		
 		Button btnGraphView = new Button(shlHomeScreen, SWT.NONE);
 		btnGraphView.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -620,10 +635,11 @@ public class HomeScreen {
 		btnSettings.setText("Settings");
 
 		lblClock = new Label(shlHomeScreen, SWT.NONE);
+		lblClock.setAlignment(SWT.RIGHT);
 		lblClock.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
 		lblClock.setFont(SWTResourceManager.getFont("Calibri", 12, SWT.BOLD));
 		lblClock.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblClock.setBounds(456, 19, 152, 25);
+		lblClock.setBounds(570, 102, 152, 25);
 		lblClock.setText(new SimpleDateFormat("HH:mm:ss").format(new Date()));
 		
 		// Timer to display running date & Time
@@ -646,28 +662,12 @@ public class HomeScreen {
 		Label lblLogo = new Label(shlHomeScreen, SWT.NONE);
 		lblLogo.setImage(SWTResourceManager.getImage(HomeScreen.class, "/resources/Uni_Logo.gif"));
 		lblLogo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblLogo.setBounds(614, 0, 112, 50);
+		lblLogo.setBounds(614, 0, 110, 54);
 
 		Group group = new Group(shlHomeScreen, SWT.NONE);
 
 		Browser browser = new Browser(shlHomeScreen, SWT.NONE);
 		browser.setBounds(467, 439, 64, 32);
-
-		Group grpStatus = new Group(shlHomeScreen, SWT.NONE);
-		grpStatus.setBounds(10, 0, 441, 74);
-		grpStatus.setFont(SWTResourceManager.getFont("Segoe UI", 13, SWT.BOLD));
-		grpStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-
-		lblStatusIndicator = new Label(grpStatus, SWT.NONE);
-		lblStatusIndicator.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, Constants.ICON_OK_IMG));
-		lblStatusIndicator.setBounds(10, 22, 38, 42);
-
-		lblStatusMessage = new Label(grpStatus, SWT.NONE);
-		lblStatusMessage.setBounds(54, 35, 377, 29);
-		lblStatusMessage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblStatusMessage.setFont(SWTResourceManager.getFont("Californian FB", 10, SWT.BOLD));
-		lblStatusMessage.setText("Application Started!");
 
 		Label lblLatestSugarLevels = new Label(shlHomeScreen, SWT.NONE);
 		lblLatestSugarLevels.setBounds(22, 92, 123, 23);
@@ -676,13 +676,30 @@ public class HomeScreen {
 		lblLatestSugarLevels.setText("Sugar Level Indicator");
 
 		Label lblNewLabel = new Label(shlHomeScreen, SWT.NONE);
-		lblNewLabel.setBounds(262, 115, 169, 17);
+		lblNewLabel.setBounds(289, 115, 169, 17);
 		lblNewLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblNewLabel.setText("Expected Value 70 - 120 mg/dl");
 
 		progressBarSugarLevel = new ProgressBar(shlHomeScreen, SWT.NONE);
 		progressBarSugarLevel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		progressBarSugarLevel.setBounds(166, 92, 274, 17);
+		progressBarSugarLevel.setBounds(166, 92, 285, 17);
+				
+						lblStatusIndicator = new Label(shlHomeScreen, SWT.NONE);
+						lblStatusIndicator.setAlignment(SWT.CENTER);
+						lblStatusIndicator.setBounds(10, 10, 53, 44);
+						lblStatusIndicator.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+						lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, Constants.ICON_OK_IMG));
+						
+						Label label = new Label(shlHomeScreen, SWT.SEPARATOR | SWT.HORIZONTAL);
+						label.setBackground(SWTResourceManager.getColor(SWT.COLOR_DARK_RED));
+						label.setBounds(0, 72, 743, 5);
+						
+						lblStatusMessage = new Text(shlHomeScreen, SWT.MULTI);
+						lblStatusMessage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+						lblStatusMessage.setFont(SWTResourceManager.getFont("Baskerville Old Face", 20, SWT.BOLD));
+						lblStatusMessage.setText("Application Started !");
+						lblStatusMessage.setEditable(false);
+						lblStatusMessage.setBounds(76, 10, 532, 44);
 
 	}
 }

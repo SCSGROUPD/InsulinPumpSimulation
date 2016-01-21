@@ -3,8 +3,6 @@ package gui;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
@@ -217,7 +215,7 @@ public class SettingsPage {
 		spinnerBFM = new Spinner(grpCARBSettings, SWT.BORDER);
 		spinnerBFM.setMaximum(59);
 		spinnerBFM.setBounds(425, 30, 47, 22);
-
+		
 		spinnerLNH = new Spinner(grpCARBSettings, SWT.BORDER);
 		spinnerLNH.setMaximum(15);
 		spinnerLNH.setBounds(366, 60, 47, 22);
@@ -357,7 +355,7 @@ public class SettingsPage {
 
 		spinnerBasalaInsulin = new Spinner(groupSettings, SWT.BORDER);
 		spinnerBasalaInsulin.setBounds(261, 136, 76, 22);
-		spinnerBasalaInsulin.addModifyListener(new ModifyListener() {
+	/*	spinnerBasalaInsulin.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				int diff = settings.getTdd() - spinnerBasalaInsulin.getSelection();
@@ -365,12 +363,12 @@ public class SettingsPage {
 				settings.setBolus(diff);
 				spinnerBolusInsulin.setSelection(diff);
 			}
-		});
+		});*/
 
 		
 		spinnerBolusInsulin = new Spinner(groupSettings, SWT.BORDER);
 		spinnerBolusInsulin.setBounds(261, 168, 76, 22);
-		spinnerBolusInsulin.addModifyListener(new ModifyListener() {
+		/*spinnerBolusInsulin.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				int diff = settings.getTdd() - spinnerBolusInsulin.getSelection();
@@ -378,7 +376,7 @@ public class SettingsPage {
 				settings.setBolus(diff);
 				spinnerBasalaInsulin.setSelection(diff);
 			}
-		});
+		});*/
 
 		Button btnCancel = new Button(shlSettings, SWT.NONE);
 		btnCancel.setBounds(339, 432, 75, 25);
@@ -402,7 +400,7 @@ public class SettingsPage {
 
 		Button btnCheckButton = new Button(shlSettings, SWT.CHECK);
 		btnCheckButton.setBounds(10, 436, 13, 16);
-		btnCheckButton.setSelection(Constants.APP_IN_MANUAL_MODE);
+		btnCheckButton.setSelection(settings.isManualInterventionRequired());
 		btnCheckButton.addSelectionListener(new SelectionAdapter() {
 		        @Override
 		        public void widgetSelected(SelectionEvent event) {
@@ -421,11 +419,13 @@ public class SettingsPage {
 		btnSubmit.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				settings.setBreakfastTime(spinnerBFH.getText() + ":"+ spinnerBFM.getText());
+				settings.setLunchTime(spinnerLNH.getText() + ":"+ spinnerLNM.getText());
+				settings.setDinnerTime(spinnerDNH.getText() + ":"+ spinnerDNM.getText());
 				dbMgr.merge(settings);
 				shlSettings.close();
 			}
 		});
-
 	}
 	
 	private void updateFactors(int tdd) {

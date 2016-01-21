@@ -44,7 +44,7 @@ public class CARBRemainderPage {
 		shlCarbAndRemainder.layout();
 		
 		if(soundRequired){
-			Utility.initiateAlarm(Constants.SOUND_REMINDER); 
+			Utility.playAlarm(Constants.SOUND_REMINDER); 
 		}
 			
 		while (!shlCarbAndRemainder.isDisposed()) {

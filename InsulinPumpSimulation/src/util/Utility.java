@@ -26,9 +26,9 @@ public class Utility {
 			postPoneTime = Constants.MEAL_REMAINDER_INTERVAL
 					- (System.currentTimeMillis() - Constants.MEAL_POSTPONED_TIME) / (1000 * 60 * 60);
 			// postpone time exceeded
-			if(postPoneTime == 0){
+			if (postPoneTime == 0) {
 				Constants.IS_MEAL_POSTPONED = false;
-				postPoneTime =0;
+				postPoneTime = 0;
 			}
 		}
 
@@ -36,13 +36,6 @@ public class Utility {
 		String str = sdf.format(new Date());
 
 		long currTime = Integer.parseInt(str.split(":")[0]) * 60 + Integer.parseInt(str.split(":")[1]);
-/*		long lastBolusTime = 0;
-		if (Constants.LAST_BOLUS_INJECTED_TIME != 0) {
-			String lastBolus = sdf.format(Constants.LAST_BOLUS_INJECTED_TIME);
-			// All time in minutes
-			lastBolusTime = currTime
-					- (Integer.parseInt(lastBolus.split(":")[0]) * 60 + Integer.parseInt(lastBolus.split(":")[1]));
-		}*/
 
 		long breakFastTime = postPoneTime + Integer.parseInt(setting.getBreakfastTime().split(":")[0]) * 60
 				+ Integer.parseInt(setting.getBreakfastTime().split(":")[1]);
@@ -51,40 +44,48 @@ public class Utility {
 		long dinnerTime = postPoneTime + Integer.parseInt(setting.getDinnerTime().split(":")[0]) * 60
 				+ Integer.parseInt(setting.getDinnerTime().split(":")[1]);
 
-		
 		// For first time
-		if(Constants.RECENT_INJECTED_BOLUS == 0){
-			if(currTime <= breakFastTime){
+		if (Constants.RECENT_INJECTED_BOLUS == 0) {
+			if (currTime <= breakFastTime) {
 				Constants.RECENT_INJECTED_BOLUS = Constants.DINNER_BOLUS;
-			}else if(currTime <= lunchTime){
+			} else if (currTime <= lunchTime) {
 				Constants.RECENT_INJECTED_BOLUS = Constants.BREAKFAST_BOLUS;
-			}else{
+			} else {
 				Constants.RECENT_INJECTED_BOLUS = Constants.LUNCH_BOLUS;
 			}
 		}
-		
+
+		// Time difference in Min
 		long timeDiff = 0;
-		Calendar c = new GregorianCalendar();
-		c.setTimeInMillis(System.currentTimeMillis());
+		Calendar cal = new GregorianCalendar();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		
+		Calendar latCal = new GregorianCalendar();
+		latCal.setTimeInMillis(System.currentTimeMillis());
 		
 		if (Constants.RECENT_INJECTED_BOLUS == Constants.DINNER_BOLUS
 				&& (currTime <= breakFastTime || currTime > dinnerTime)) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.BREAKFAST_BOLUS;
+			latCal.add(Calendar.MINUTE, (int) breakFastTime);
+			//timeDiff = (latCal.getTimeInMillis() - cal.getTimeInMillis())/(1000*60);
 			// Greater than 3:00 PM
-			if(currTime > 15*60){
-				timeDiff = breakFastTime+ (24*60) - currTime; 
-			}else
-				timeDiff = breakFastTime  - currTime; 
+			if (currTime > 15 * 60) {
+				timeDiff = breakFastTime + (24 * 60) - currTime;
+			} else
+				timeDiff = breakFastTime - currTime;
 
-		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.BREAKFAST_BOLUS 
-				&& currTime > breakFastTime	&& currTime < dinnerTime) {
+		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.BREAKFAST_BOLUS && currTime > breakFastTime
+				&& currTime < dinnerTime) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.LUNCH_BOLUS;
+//			latCal.add(Calendar.MINUTE, (int) breakFastTime);
+//			timeDiff = (latCal.getTimeInMillis() - cal.getTimeInMillis())/(1000*60);
 			timeDiff = lunchTime - currTime;
-		} else if(Constants.RECENT_INJECTED_BOLUS == Constants.LUNCH_BOLUS && currTime > lunchTime){
+		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.LUNCH_BOLUS && currTime > lunchTime) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.DINNER_BOLUS;
+//			latCal.add(Calendar.MINUTE, (int) breakFastTime);
+//			timeDiff = (latCal.getTimeInMillis() - cal.getTimeInMillis())/(1000*60);
 			timeDiff = dinnerTime - currTime;
 		}
-		
 
 		return timeDiff;
 
@@ -125,31 +126,39 @@ public class Utility {
 	 * 
 	 * @throws Exception
 	 */
-	public static void initiateAlarm(String wavPath) {
-		try {
-			File soundFile = new File(wavPath);
-			AudioInputStream sound = AudioSystem.getAudioInputStream(soundFile);
+	public static void playAlarm(String wavPath) {
 
-			DataLine.Info info = new DataLine.Info(Clip.class, sound.getFormat());
-			Clip clip = (Clip) AudioSystem.getLine(info);
-			clip.open(sound);
+		Thread alarm = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					File soundFile = new File(wavPath);
+					AudioInputStream sound = AudioSystem.getAudioInputStream(soundFile);
 
-			clip.addLineListener(new LineListener() {
-				public void update(LineEvent event) {
-					if (event.getType() == LineEvent.Type.STOP) {
-						event.getLine().close();
+					DataLine.Info info = new DataLine.Info(Clip.class, sound.getFormat());
+					Clip clip = (Clip) AudioSystem.getLine(info);
+					clip.open(sound);
+
+					clip.addLineListener(new LineListener() {
+						public void update(LineEvent event) {
+							if (event.getType() == LineEvent.Type.STOP) {
+								event.getLine().close();
+							}
+						}
+					});
+
+					clip.start();
+					 Thread.sleep(2000);
+					if (clip.isOpen()) {
+						clip.close();
+						sound.close();
 					}
+				} catch (Exception e) {
 				}
-			});
-
-			clip.start();
-			Thread.sleep(2000);
-			if (clip.isOpen()) {
-				clip.close();
-				sound.close();
 			}
-		} catch (Exception e) {
-		}
+		});
+
+		alarm.start();
 	}
 
 }
