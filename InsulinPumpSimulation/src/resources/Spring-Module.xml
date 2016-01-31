@@ -61,6 +61,7 @@
 	</bean>
 
 	<bean id="app" class="gui.HomeScreen">
+	 <constructor-arg type="java.lang.String" value=""/>
 		<property name="dbMgr" ref="dbMgr" />
 		<property name="settings" ref="settings" />
 		<property name="carb" ref="carb" />

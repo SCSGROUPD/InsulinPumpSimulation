@@ -9,6 +9,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import dba.DBManager;
 import entities.PreConditionsRecord;
 import gui.HomeScreen;
+import util.Constants;
 
 @Configuration
 @ComponentScan
@@ -33,6 +34,8 @@ public class Application {
 		// Instantiate Spring Context
 		ApplicationContext context = new ClassPathXmlApplicationContext("resources/Spring-Module.xml");
 
+		Constants.BLOOD_SUGAR_LEVEL = 150;
+		
 		// Set the default Pr-Condition Values
 		DBManager dbMgr = (DBManager) context.getBean("dbMgr");
 		dbMgr.setPreconditions();

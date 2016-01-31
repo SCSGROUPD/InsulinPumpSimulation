@@ -59,15 +59,16 @@ public class Utility {
 		long timeDiff = 0;
 		Calendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(System.currentTimeMillis());
-		
+
 		Calendar latCal = new GregorianCalendar();
 		latCal.setTimeInMillis(System.currentTimeMillis());
-		
+
 		if (Constants.RECENT_INJECTED_BOLUS == Constants.DINNER_BOLUS
 				&& (currTime <= breakFastTime || currTime > dinnerTime)) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.BREAKFAST_BOLUS;
 			latCal.add(Calendar.MINUTE, (int) breakFastTime);
-			//timeDiff = (latCal.getTimeInMillis() - cal.getTimeInMillis())/(1000*60);
+			// timeDiff = (latCal.getTimeInMillis() -
+			// cal.getTimeInMillis())/(1000*60);
 			// Greater than 3:00 PM
 			if (currTime > 15 * 60) {
 				timeDiff = breakFastTime + (24 * 60) - currTime;
@@ -77,18 +78,67 @@ public class Utility {
 		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.BREAKFAST_BOLUS && currTime > breakFastTime
 				&& currTime < dinnerTime) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.LUNCH_BOLUS;
-//			latCal.add(Calendar.MINUTE, (int) breakFastTime);
-//			timeDiff = (latCal.getTimeInMillis() - cal.getTimeInMillis())/(1000*60);
+			// latCal.add(Calendar.MINUTE, (int) breakFastTime);
+			// timeDiff = (latCal.getTimeInMillis() -
+			// cal.getTimeInMillis())/(1000*60);
 			timeDiff = lunchTime - currTime;
 		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.LUNCH_BOLUS && currTime > lunchTime) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.DINNER_BOLUS;
-//			latCal.add(Calendar.MINUTE, (int) breakFastTime);
-//			timeDiff = (latCal.getTimeInMillis() - cal.getTimeInMillis())/(1000*60);
+			// latCal.add(Calendar.MINUTE, (int) breakFastTime);
+			// timeDiff = (latCal.getTimeInMillis() -
+			// cal.getTimeInMillis())/(1000*60);
 			timeDiff = dinnerTime - currTime;
 		}
 
 		return timeDiff;
 
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public static int getSugarLevel(int state, int value) {
+
+		int retVal = 0;
+
+		switch (state) {
+		case 1: // Correction Bolus
+			retVal = 100;
+			break;
+
+		case 2: // Meal taken
+			retVal = Constants.BLOOD_SUGAR_LEVEL + 90;
+			break;
+
+		case 3: // Bolus injected
+			retVal = Constants.BLOOD_SUGAR_LEVEL - value;
+			break;
+
+		case 4: // Glu injected
+			retVal = Constants.BLOOD_SUGAR_LEVEL + value;
+			break;
+
+		case 5: // Less Glu
+			retVal = 50;
+			break;
+
+		case 6: // Emergency
+			retVal = 20;
+			break;
+
+		default:
+	/*		if (Constants.BLOOD_SUGAR_LEVEL < 120 && Constants.BLOOD_SUGAR_LEVEL > 80) {
+				retVal = Constants.BLOOD_SUGAR_LEVEL + 5;
+			} else {
+			}*/
+			retVal = Constants.BLOOD_SUGAR_LEVEL + 10;
+			break;
+		}
+
+		Constants.BLOOD_SUGAR_LEVEL = retVal;
+
+		return retVal;
 	}
 
 	/**
@@ -148,7 +198,7 @@ public class Utility {
 					});
 
 					clip.start();
-					 Thread.sleep(2000);
+					Thread.sleep(2000);
 					if (clip.isOpen()) {
 						clip.close();
 						sound.close();

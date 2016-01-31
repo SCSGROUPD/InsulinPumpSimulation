@@ -30,13 +30,13 @@ public class PreConditionsRecord {
 	
 	private boolean needleAssemblyTestResult;
 	
-	private boolean currentStatus = true;
+	private int currentStatus;
 
 	/**
 	 * 
 	 * @return
 	 */
-	public boolean getCurrentStatus(){
+	public int getCurrentStatus(){
 		return currentStatus;
 	}
 	
@@ -112,11 +112,7 @@ public class PreConditionsRecord {
 		this.createdAt = createdAt;
 	}
 
-	public boolean isCurrentStatus() {
-		return currentStatus;
-	}
-
-	public void setCurrentStatus(boolean currentStatus) {
+	public void setCurrentStatus(int currentStatus) {
 		this.currentStatus = currentStatus;
 	}
 	

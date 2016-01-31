@@ -79,7 +79,7 @@ public class DBManager {
 	 * @param activity
 	 */
 	public void setActivity(String activity, int testStatus) {
-		String date = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss").format(new Date());
+		String date = new SimpleDateFormat("dd-MM-yy hh:mm:ss").format(new Date());
 		if (testStatus == Constants.ACTIVITY_STATUS_OK) {
 			activity = date + "::Success : " + activity;
 		} else if (testStatus == Constants.ACTIVITY_STATUS_WARNING) {

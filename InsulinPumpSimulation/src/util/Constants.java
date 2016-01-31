@@ -23,6 +23,10 @@ public class Constants {
 	
 	public static volatile int RECENT_INJECTED_BOLUS =0;
 	
+	public static volatile int CURRENT_INSULIN_RESERVOIR = 80;
+	
+	public static volatile int CURRENT_GLU_RESERVOIR = 70;
+	
 	public static volatile long LAST_BOLUS_INJECTED_TIME = 0;
 	
 	public static final int ACTIVITY_STATUS_OK = 1;
@@ -33,9 +37,9 @@ public class Constants {
 	
 	public static final String SOUND_REMINDER= "../InsulinPumpSimulation/src/resources/reminder.wav";
 	
-	public static final String SOUND_FAILURE= "../InsulinPumpSimulation/src/resources/preCondFail.wav";
+	public static final String SOUND_FAILURE= "../InsulinPumpSimulation/src/resources/error.wav";
 	
-	public static final String SOUND_PHONE= "../InsulinPumpSimulation/src/resources/old-phone-ringing.wav";
+//	public static final String SOUND_PHONE= "../InsulinPumpSimulation/src/resources/old-phone-ringing.wav";
 	
 	public static final String ICON_OK_IMG ="/resources/ok-icon.png";
 	
@@ -56,6 +60,7 @@ public class Constants {
 	public static final String COMPONENT_NEEDLE_ASSEMBLY ="NeedleAssembly";
 	public static final String COMPONENT_ALARM ="Alarm";
 	
+	public static volatile int BLOOD_SUGAR_LEVEL ;
 	/* Precondition data */
 	 public static final int BATTERY = 1;
 	 public static final int INSULIN_RESERVOIR = 2;
