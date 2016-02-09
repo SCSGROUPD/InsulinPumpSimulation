@@ -1,5 +1,10 @@
 package util;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import entities.ActivityLog;
+
 public class Constants {
 	
 	public static volatile String CURRENT_CYCLE_STATUS ="";
@@ -12,6 +17,8 @@ public class Constants {
 	public static volatile boolean IS_MEAL_POSTPONED =false;
 	
 	public static final int BREAKFAST_BOLUS=1;
+	
+	public static volatile List<ActivityLog> activities = new ArrayList<>();
 	
 	public static final int LUNCH_BOLUS=2;
 	

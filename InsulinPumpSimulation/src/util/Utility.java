@@ -120,7 +120,7 @@ public class Utility {
 			break;
 
 		case 5: // Less Glu
-			retVal = 50;
+			retVal = 30;
 			break;
 
 		case 6: // Emergency

@@ -90,6 +90,7 @@ public class DBManager {
 		ActivityLog al = new ActivityLog();
 		al.setActivity(activity + "\n");
 		save(al);
+		Constants.activities.add(0, al);
 	}
 
 	/**
@@ -100,7 +101,7 @@ public class DBManager {
 		Session session = this.sessionFactory.openSession();
 		Criteria criteria = session.createCriteria(ActivityLog.class);
 		criteria.addOrder(Order.desc("created"));
-		criteria.setMaxResults(100);
+		criteria.setMaxResults(10);
 		List<ActivityLog> list = criteria.list();
 		session.close();
 		return list;

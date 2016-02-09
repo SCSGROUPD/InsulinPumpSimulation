@@ -3,6 +3,8 @@ package gui;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
@@ -41,7 +43,7 @@ public class SettingsPage {
 	private DBManager dbMgr;
 	private AppSettings settings;
 	private HomeScreen homeScreen;
-	
+	private Button btnSubmit;
 	
 	// Injected from Spring
 	private ResetPassword resetPassword;
@@ -238,6 +240,17 @@ public class SettingsPage {
 
 		textPWD = new Text(groupPWD, SWT.BORDER | SWT.PASSWORD);
 		textPWD.setBounds(109, 30, 171, 23);
+		
+		textPWD.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if("admin".equals(textPWD.getText())){
+					btnSubmit.setEnabled(true);
+				}else{
+					btnSubmit.setEnabled(false);
+				}
+			}
+		});
 
 		Label lblEnterPWD = new Label(groupPWD, SWT.NONE);
 		lblEnterPWD.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
@@ -391,10 +404,10 @@ public class SettingsPage {
 		btnCancel.setSelection(true);
 		btnCancel.setText("Cancel");
 
-		Button btnSubmit = new Button(shlSettings, SWT.NONE);
+		btnSubmit = new Button(shlSettings, SWT.NONE);
+		btnSubmit.setEnabled(false);
 		btnSubmit.setBounds(420, 432, 75, 25);
 		btnSubmit.setTouchEnabled(true);
-		btnSubmit.setSelection(true);
 		btnSubmit.setGrayed(true);
 		btnSubmit.setText("Submit");
 

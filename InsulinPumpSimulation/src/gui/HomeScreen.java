@@ -181,6 +181,8 @@ public class HomeScreen  {
 				display.sleep();
 			}
 		}
+		shlHomeScreen.redraw();
+//		shlHomeScreen.layout();
 	}
 
 	/**
@@ -189,7 +191,7 @@ public class HomeScreen  {
 	 * @param sugarLevel
 	 */
 	public void setSugarLevel() {
-		final int sugarLevel = Utility.getSugarLevel(0, 0);
+		final int sugarLevel = Constants.BLOOD_SUGAR_LEVEL;
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
 				txtSugarLevel.setText(Integer.toString(sugarLevel) + "mg/dl");
@@ -264,20 +266,22 @@ public class HomeScreen  {
 	}
 
 	public void setInsulinReservoir(int value, PreConditionsRecord pcr) {
+		value = Constants.CURRENT_INSULIN_RESERVOIR;
 		pbInsulinReservoir.setSelection(Constants.CURRENT_INSULIN_RESERVOIR);
 		pcr.setInsulinReservoirTestResult(true);
-		pbInsulinReservoir.setState(SWT.NORMAL);
 		pbInsulinReservoir.setToolTipText(value + "%");
 		if (value <= 30) {
 			pcr.setCurrentStatus(0);
-			pcr.setInsulinReservoirTestResult(false);
 			pbInsulinReservoir.setState(SWT.ERROR);
+			pbInsulinReservoir.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
+			pcr.setInsulinReservoirTestResult(false);
 			dbMgr.setActivity("Insulin reservoir in critical state. Please refill it", Constants.ACTIVITY_STATUS_ERROR);
 		} else if (value > 30 && value <= 40) {
 			pbInsulinReservoir.setState(SWT.PAUSED);
-			// setStatus(Constants.ICON_WARNING_IMG, "Check Critical
-			// Indicators!");
+			// setStatus(Constants.ICON_WARNING_IMG, "Check Critical Indicators!");
 			dbMgr.setActivity("Insulin reservoir needs attention. Please refill it", Constants.ACTIVITY_STATUS_WARNING);
+		}else{
+			pbInsulinReservoir.setState(SWT.NORMAL);
 		}
 	}
 
@@ -285,8 +289,8 @@ public class HomeScreen  {
 	 * @param value
 	 */
 	public void setGlucagonReservoir(int value, PreConditionsRecord pcr) {
+		value = Constants.CURRENT_GLU_RESERVOIR;
 		pbGlucagonReservoir.setSelection(value);
-		pbGlucagonReservoir.setState(SWT.NORMAL);
 		pcr.setGlucagonTestResult(true);
 		pbGlucagonReservoir.setToolTipText(value + "%");
 		if (value <= 30) {
@@ -296,11 +300,10 @@ public class HomeScreen  {
 			dbMgr.setActivity("Glucagon reservoir needs to be refilled immediately.", Constants.ACTIVITY_STATUS_ERROR);
 		} else if (value > 30 && value <= 40) {
 			pbGlucagonReservoir.setState(SWT.PAUSED);
-			setStatus(Constants.ICON_WARNING_IMG, "Check Critical Indicators!");
+			//setStatus(Constants.ICON_WARNING_IMG, "Check Critical Indicators!");
 			dbMgr.setActivity("Glucagon reservoir is draining. Please refill", Constants.ACTIVITY_STATUS_WARNING);
 		} else {
-			// dbMgr.setActivity("Glucagon reservoir is good enough",
-			// Constants.ACTIVITY_STATUS_OK);
+			pbGlucagonReservoir.setState(SWT.NORMAL);
 		}
 	}
 
@@ -309,12 +312,15 @@ public class HomeScreen  {
 	 */
 	public void setMealTime(AppSettings setting) {
 		this.appSettings = setting;
+		final long timeDiff = Utility.getTimeForNextMeal(setting, true);
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
-				final long timeDiff = Utility.getTimeForNextMeal(setting, true);
 				long hours = timeDiff / 60;
 				long mins = timeDiff % 60;
-				lblMealTime.setText(hours + " Hrs : " + mins + " Mins");
+				String mealTime = String.format("%d Hrs : %d Mins", hours,mins);
+				System.out.println(mealTime);
+				lblMealTime.setText(mealTime);
+				lblMealTime.redraw();
 
 				if (timeDiff <= Constants.MEAL_REMAINDER_INTERVAL) {
 					setBolusButtons(true);
@@ -346,6 +352,9 @@ public class HomeScreen  {
 		} else {
 			bolus = setting.getDinnerCalories() / (500 / setting.getTdd());
 		}
+		
+		// inject 75% of Bolus
+		bolus = (float) (bolus * 0.75);
 
 		Constants.CURRENT_INSULIN_RESERVOIR = Constants.CURRENT_INSULIN_RESERVOIR -10;
 		int value = Constants.BLOOD_SUGAR_LEVEL - Constants.BLOOD_SUGAR_LEVEL / 2;
@@ -459,7 +468,7 @@ public class HomeScreen  {
 				}
 
 				if (pcr.getCurrentStatus() == 0) {
-					Utility.playAlarm(Constants.SOUND_REMINDER);
+					Utility.playAlarm(Constants.SOUND_FAILURE);
 				}
 			}
 		}));
@@ -649,14 +658,14 @@ public class HomeScreen  {
 		btnGraphView.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				Display display = Display.getDefault();
-				createContents();
+				/*Display display = Display.getDefault();
+				createContents();*/
 				graph.open(dbMgr);
-				while (null != graph.shlGraphView && !graph.shlGraphView.isDisposed()) {
+				/*while (null != graph.shlGraphView && !graph.shlGraphView.isDisposed()) {
 					if (!display.readAndDispatch()) {
 						display.sleep();
 					}
-				}
+				}*/
 			}
 		});
 		btnGraphView.setBounds(470, 140, 100, 54);
@@ -669,14 +678,7 @@ public class HomeScreen  {
 		btnSettings.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				Display display = Display.getDefault();
-				createContents();
 				settings.open(dbMgr, hs);
-				while (null != settings.shlSettings && !settings.shlSettings.isDisposed()) {
-					if (!display.readAndDispatch()) {
-						display.sleep();
-					}
-				}
 			}
 
 		});

@@ -22,7 +22,6 @@ public class ApplicationMonitor {
 	public static volatile int latestBolusUnits = 0;
 	public static volatile long latestBolusTime = 0;
 	private int basalCounter = 0;
-	private volatile boolean isPreconditionStatusUpdated = false;
 
 	// Injected from Spring
 	private DBManager dbMgr;
@@ -31,52 +30,59 @@ public class ApplicationMonitor {
 
 	@Scheduled(initialDelay = 2000, fixedRate = 4000)
 	public void startMonitorThread() {
-		PreConditionsRecord pcr = new PreConditionsRecord();
-		pcr.setCurrentStatus(1);
-		Constants.CURRENT_CYCLE_STATUS = "";
-		Map<Integer, Integer> pcs = dbMgr.getPreconditions();
-		settings = dbMgr.getAppSettings();
-		//int sugarLevel = dbMgr.getSugarLevel();
-		appHomeScreen.setActivityLog(dbMgr.getActivities());
-
-		//
-		appHomeScreen.setPreConditions(pcs, pcr);
-		appHomeScreen.setMealTime(settings);
-		PreConditionsRecord pc = (PreConditionsRecord) dbMgr.save(pcr);
-
-		if(pc.getCurrentStatus()==0){
-			isPreconditionStatusUpdated = false;
-			appHomeScreen.setStatus(Constants.ICON_SAD_SMILEY_IMG, 
-					"OOPS! Faulty Critical Components!");
-			return;
-		}else if(isPreconditionStatusUpdated){
-			isPreconditionStatusUpdated = true;
-			appHomeScreen.setStatus(Constants.ICON_OK_IMG, 
-					"Application is healthy!");
-		}
-
-		SugarLevelRecord record = new SugarLevelRecord();
-		// inject Basal once in every 4 cycles
-		if (basalCounter%5 == 0) {
-			if(Constants.CURRENT_INSULIN_RESERVOIR < 8){
-				Constants.CURRENT_INSULIN_RESERVOIR = 100;
-			}
-			if(Constants.CURRENT_GLU_RESERVOIR < 8){
-				Constants.CURRENT_GLU_RESERVOIR = 100;
-			}
-			if(pc.getCurrentStatus()!=0){
-				injectCorrection(record);
-			}
-		}
-		basalCounter++;
-		injectBasal(record, pc.getCurrentStatus());
-		record.setSugarLevel(Constants.BLOOD_SUGAR_LEVEL);
-		dbMgr.save(record);
-		appHomeScreen.setSugarLevel();
-
 		// set low glu
-		if (basalCounter%3 == 0) {
+		if (basalCounter % 10 == 0) {
+			appHomeScreen.setStatus(Constants.ICON_ERROR_IMG, "Emergency mode activated!");
+			basalCounter++;
 			Utility.getSugarLevel(5, 0);
+			appHomeScreen.setSugarLevel();
+			Utility.playAlarm(Constants.SOUND_FAILURE);
+			return;
+		} else {
+			Utility.getSugarLevel(0, 0);
+			PreConditionsRecord pcr = new PreConditionsRecord();
+			pcr.setCurrentStatus(1);
+			Constants.CURRENT_CYCLE_STATUS = "";
+			Map<Integer, Integer> pcs = dbMgr.getPreconditions();
+			settings = dbMgr.getAppSettings();
+			// int sugarLevel = dbMgr.getSugarLevel();
+			if(Constants.activities.isEmpty()){
+				Constants.activities = dbMgr.getActivities();
+			}
+			appHomeScreen.setActivityLog(Constants.activities);
+
+			//
+			appHomeScreen.setPreConditions(pcs, pcr);
+			appHomeScreen.setMealTime(settings);
+			PreConditionsRecord pc = (PreConditionsRecord) dbMgr.save(pcr);
+
+			/*if (pc.getCurrentStatus() == 0) {
+				isPreconditionStatusUpdated = false;
+				appHomeScreen.setStatus(Constants.ICON_SAD_SMILEY_IMG, "OOPS! Faulty Critical Components!");
+				return;
+			} else if (isPreconditionStatusUpdated) {
+				isPreconditionStatusUpdated = true;
+				appHomeScreen.setStatus(Constants.ICON_OK_IMG, "Application is healthy!");
+			}*/
+
+			SugarLevelRecord record = new SugarLevelRecord();
+			// inject Basal once in every 4 cycles
+			if (basalCounter % 5 == 0 || Constants.BLOOD_SUGAR_LEVEL < 70) {
+				if (Constants.CURRENT_INSULIN_RESERVOIR < 20) {
+					Constants.CURRENT_INSULIN_RESERVOIR = 100;
+				}
+				if (Constants.CURRENT_GLU_RESERVOIR < 20) {
+					Constants.CURRENT_GLU_RESERVOIR = 100;
+				}
+				if (pc.getCurrentStatus() != 0 || Constants.BLOOD_SUGAR_LEVEL < 70) {
+					injectCorrection(record);
+				}
+			}
+			basalCounter++;
+			injectBasal(record, pc.getCurrentStatus());
+			record.setSugarLevel(Constants.BLOOD_SUGAR_LEVEL);
+			dbMgr.save(record);
+			appHomeScreen.setSugarLevel();
 		}
 	}
 
@@ -106,44 +112,43 @@ public class ApplicationMonitor {
 	 * @param sugarLevel
 	 * @param slr
 	 */
-	public void injectCorrection(SugarLevelRecord slr){
+	public void injectCorrection(SugarLevelRecord slr) {
 		final int sugarLevel = Constants.BLOOD_SUGAR_LEVEL;
 		DecimalFormat twoDForm = new DecimalFormat("#.##");
-		if(sugarLevel > 120){
+		if (sugarLevel > 120) {
 			float diff = sugarLevel - 100;
-			Double bolus = Double.valueOf(twoDForm.format(diff/(1800/settings.getTdd())));
+			Double bolus = Double.valueOf(twoDForm.format(diff / (1800 / settings.getTdd())));
 			dbMgr.setActivity("Injected Correction BOLUS of " + bolus + "mg/dl", Constants.ACTIVITY_STATUS_OK);
 			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, "Injected Correction BOLUS of " + bolus + "mg/dl");
 			slr.setBolusInjectedInjected(slr.getBolusInjectedInjected() + bolus);
-			Constants.CURRENT_INSULIN_RESERVOIR = Constants.CURRENT_INSULIN_RESERVOIR -7;
-		}else if(sugarLevel < 70){
+			Constants.CURRENT_INSULIN_RESERVOIR = Constants.CURRENT_INSULIN_RESERVOIR - 7;
+		} else if (sugarLevel < 70) {
 			float diff = 100 - sugarLevel;
-			Double glucagon  = Double.valueOf(twoDForm.format(diff/15));
-			dbMgr.setActivity("Injected Correction Glucagon of " + glucagon + 
-					"gms \n@Blood Sugar level of " + Constants.BLOOD_SUGAR_LEVEL, Constants.ACTIVITY_STATUS_OK);
-			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, "Injected Correction Glucagon of " + glucagon + 
-					"gms \n@Blood Sugar level of " + Constants.BLOOD_SUGAR_LEVEL );
+			Double glucagon = Double.valueOf(twoDForm.format(diff / 15));
+			dbMgr.setActivity("Injected Correction Glucagon of " + glucagon + "gms \n@Blood Sugar level of "
+					+ Constants.BLOOD_SUGAR_LEVEL, Constants.ACTIVITY_STATUS_OK);
+			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, "Injected Correction Glucagon of " + glucagon
+					+ "gms \n@Blood Sugar level of " + Constants.BLOOD_SUGAR_LEVEL);
 			slr.setGlucagonInjected(slr.getGlucagonInjected() + glucagon);
-			Constants.CURRENT_GLU_RESERVOIR = Constants.CURRENT_GLU_RESERVOIR- 10;
+			Constants.CURRENT_GLU_RESERVOIR = Constants.CURRENT_GLU_RESERVOIR - 10;
 		}
-		Constants.BLOOD_SUGAR_LEVEL = 100;
+		Utility.getSugarLevel(1, 100);
 		appHomeScreen.setSugarLevel();
 	}
-	
-	
+
 	/**
 	 * 
 	 * @param settings
 	 */
 	public void injectBasal(SugarLevelRecord sl, int pcStatus) {
 		System.out.println("Precondition status =====> " + pcStatus);
-		if ((settings.getBasal() > 0) && (pcStatus == 1)) {
+		if ((settings.getBasal() > 0) /*&& (pcStatus == 1)*/) {
 			DecimalFormat df = new DecimalFormat("####0.00");
 			Double basalUnit = Double.valueOf(df.format((double) settings.getBasal() / 48.00));
 			dbMgr.setActivity(basalUnit + " mg/dl of BASAL INJECTED.", Constants.ACTIVITY_STATUS_OK);
 			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, basalUnit + " mg/dl of BASAL INJECTED ");
 			sl.setBasalInjectedInjected(basalUnit);
-			Constants.CURRENT_INSULIN_RESERVOIR = Constants.CURRENT_INSULIN_RESERVOIR -4;
+			Constants.CURRENT_INSULIN_RESERVOIR = Constants.CURRENT_INSULIN_RESERVOIR - 4;
 		} else {
 			System.out.println("Precondition status =====> " + settings.getBasal());
 			dbMgr.setActivity("BASAL INJECTION FAILED. Some pre-condition test failed!",
