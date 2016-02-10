@@ -9,6 +9,8 @@ public class Constants {
 	
 	public static volatile String CURRENT_CYCLE_STATUS ="";
 	
+	public static volatile boolean LOW_SUGAR_LEVEL = false;
+	
 	public static volatile int MEAL_REMAINDER_INTERVAL = 15; // in minutes
 	
 	// triggered from postpone button @ Home screen

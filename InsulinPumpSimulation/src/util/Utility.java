@@ -75,14 +75,14 @@ public class Utility {
 			} else
 				timeDiff = breakFastTime - currTime;
 
-		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.BREAKFAST_BOLUS && currTime > breakFastTime
-				&& currTime < dinnerTime) {
+		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.BREAKFAST_BOLUS /*&& currTime > breakFastTime
+				&& currTime < dinnerTime*/) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.LUNCH_BOLUS;
 			// latCal.add(Calendar.MINUTE, (int) breakFastTime);
 			// timeDiff = (latCal.getTimeInMillis() -
 			// cal.getTimeInMillis())/(1000*60);
 			timeDiff = lunchTime - currTime;
-		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.LUNCH_BOLUS && currTime > lunchTime) {
+		} else if (Constants.RECENT_INJECTED_BOLUS == Constants.LUNCH_BOLUS /*&& currTime > lunchTime*/) {
 			Constants.CURRENT_BOLUS_SESSION = Constants.DINNER_BOLUS;
 			// latCal.add(Calendar.MINUTE, (int) breakFastTime);
 			// timeDiff = (latCal.getTimeInMillis() -

@@ -212,10 +212,12 @@ public class HomeScreen  {
 		Display.getDefault().asyncExec((new Runnable() {
 			public void run() {
 				String txt = "";
-				for (int i = 0; i < logs.size(); i++) {
-					txt += (logs.get(i).getActivity() + "\n");
+				if(logs.size() > 0){
+					for (int i = 0; i < logs.size(); i++) {
+						txt += (logs.get(i).getActivity() + "\n");
+					}
+					txtActivityLog.setText(txt);
 				}
-				txtActivityLog.setText(txt);
 			}
 		}));
 	}
@@ -252,12 +254,12 @@ public class HomeScreen  {
 			public void run() {
 				// Don't over ride if the app is already in error state
 				String icon = iconPath;
-				if (Constants.ICON_ERROR_IMG.equals(iconPath)) {
+			/*	if (Constants.ICON_ERROR_IMG.equals(iconPath)) {
 					if (faultyText.isEmpty()) {
 						faultyText = statusTxt;
 					}
 					icon = Constants.ICON_ERROR_IMG;
-				}
+				}*/
 				Constants.CURRENT_CYCLE_STATUS += statusTxt + "\n";
 				lblStatusIndicator.setImage(SWTResourceManager.getImage(HomeScreen.class, icon));
 				lblStatusMessage.setText(Constants.CURRENT_CYCLE_STATUS);
@@ -337,7 +339,7 @@ public class HomeScreen  {
 	 * 
 	 */
 	public void injectBolus() {
-		Constants.LAST_BOLUS_INJECTED_TIME = System.currentTimeMillis();
+		Constants.LAST_BOLUS_INJECTED_TIME = System.currentTimeMillis() + 120*1000;
 		Constants.IS_MEAL_POSTPONED = false;
 		Constants.MEAL_POSTPONED_TIME = 0;
 		Constants.RECENT_INJECTED_BOLUS = Constants.CURRENT_BOLUS_SESSION;
@@ -578,6 +580,18 @@ public class HomeScreen  {
 		lblAlarmStatus.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		lblAlarmStatus.setText("OK");
 		lblAlarmStatus.setBounds(171, 169, 65, 21);
+		
+		Button button = new Button(grpCriticalIndicators, SWT.CHECK);
+		button.setBounds(242, 168, 13, 16);
+		
+		button.addSelectionListener(new SelectionAdapter() {
+
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+	            Constants.LOW_SUGAR_LEVEL = btn.getSelection();
+	        }
+	    });
 
 		Group grpNextBolusDosage = new Group(shlHomeScreen, SWT.NONE);
 		grpNextBolusDosage.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));

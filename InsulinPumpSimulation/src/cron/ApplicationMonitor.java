@@ -31,12 +31,13 @@ public class ApplicationMonitor {
 	@Scheduled(initialDelay = 2000, fixedRate = 4000)
 	public void startMonitorThread() {
 		// set low glu
-		if (basalCounter % 10 == 0) {
-			appHomeScreen.setStatus(Constants.ICON_ERROR_IMG, "Emergency mode activated!");
-			basalCounter++;
+		if (Constants.LOW_SUGAR_LEVEL) {
+			Constants.CURRENT_CYCLE_STATUS ="Emergency mode activated!"; 
+			appHomeScreen.setStatus(Constants.ICON_ERROR_IMG, "");
 			Utility.getSugarLevel(5, 0);
 			appHomeScreen.setSugarLevel();
 			Utility.playAlarm(Constants.SOUND_FAILURE);
+			basalCounter++;
 			return;
 		} else {
 			Utility.getSugarLevel(0, 0);
@@ -156,6 +157,7 @@ public class ApplicationMonitor {
 			appHomeScreen.setStatus(Constants.ICON_ERROR_IMG,
 					"BASAL INJECTION FAILED. Some pre-condition test failed!");
 		}
+
 	}
 
 }
