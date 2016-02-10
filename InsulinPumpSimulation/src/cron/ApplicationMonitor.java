@@ -30,6 +30,7 @@ public class ApplicationMonitor {
 
 	@Scheduled(initialDelay = 2000, fixedRate = 4000)
 	public void startMonitorThread() {
+		basalCounter++;
 		// set low glu
 		if (Constants.LOW_SUGAR_LEVEL) {
 			Constants.CURRENT_CYCLE_STATUS ="Emergency mode activated!"; 
@@ -68,18 +69,19 @@ public class ApplicationMonitor {
 
 			SugarLevelRecord record = new SugarLevelRecord();
 			// inject Basal once in every 4 cycles
-			if (basalCounter % 5 == 0 || Constants.BLOOD_SUGAR_LEVEL < 70) {
-				if (Constants.CURRENT_INSULIN_RESERVOIR < 20) {
-					Constants.CURRENT_INSULIN_RESERVOIR = 100;
-				}
-				if (Constants.CURRENT_GLU_RESERVOIR < 20) {
-					Constants.CURRENT_GLU_RESERVOIR = 100;
-				}
-				if (pc.getCurrentStatus() != 0 || Constants.BLOOD_SUGAR_LEVEL < 70) {
-					injectCorrection(record);
-				}
+			if (Constants.CURRENT_INSULIN_RESERVOIR < 20) {
+				Constants.CURRENT_INSULIN_RESERVOIR = 100;
 			}
-			basalCounter++;
+			if (Constants.CURRENT_GLU_RESERVOIR < 20) {
+				Constants.CURRENT_GLU_RESERVOIR = 100;
+			}
+			
+			if (Constants.BLOOD_SUGAR_LEVEL > 160 || Constants.BLOOD_SUGAR_LEVEL < 70) {
+				injectCorrection(record);
+//				if (pc.getCurrentStatus() != 0 || Constants.BLOOD_SUGAR_LEVEL < 70) {
+//				}
+			}
+			
 			injectBasal(record, pc.getCurrentStatus());
 			record.setSugarLevel(Constants.BLOOD_SUGAR_LEVEL);
 			dbMgr.save(record);
@@ -126,10 +128,10 @@ public class ApplicationMonitor {
 		} else if (sugarLevel < 70) {
 			float diff = 100 - sugarLevel;
 			Double glucagon = Double.valueOf(twoDForm.format(diff / 15));
-			dbMgr.setActivity("Injected Correction Glucagon of " + glucagon + "gms \n@Blood Sugar level of "
+			dbMgr.setActivity("Injected Correction Glucagon of " + glucagon + "mg \n@Blood Sugar level of "
 					+ Constants.BLOOD_SUGAR_LEVEL, Constants.ACTIVITY_STATUS_OK);
 			appHomeScreen.setStatus(Constants.ICON_INJECTION_IMG, "Injected Correction Glucagon of " + glucagon
-					+ "gms \n@Blood Sugar level of " + Constants.BLOOD_SUGAR_LEVEL);
+					+ "mg \n@Blood Sugar level of " + Constants.BLOOD_SUGAR_LEVEL);
 			slr.setGlucagonInjected(slr.getGlucagonInjected() + glucagon);
 			Constants.CURRENT_GLU_RESERVOIR = Constants.CURRENT_GLU_RESERVOIR - 10;
 		}
